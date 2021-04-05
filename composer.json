@@ -16,10 +16,26 @@
         "xml parsing"
     ],
     "require": {
-        "php": "^7.4|^8.0"
+        "php": "^7.4|^8.0",
+        "ext-libxml": "*",
+        "ext-simplexml": "*",
+        "ext-xml": "*",
+        "beberlei/assert": "^3.3",
+        "symfony/event-dispatcher": "^5.2"
+    },
+    "suggest": {
+        "symfony/event-dispatcher": "To use Symfony's evend dispatcher"
     },
     "require-dev": {
-        "roave/security-advisories": "dev-latest"
+        "friendsofphp/php-cs-fixer": "^2.18",
+        "jetbrains/phpstorm-attributes": "^1.0",
+        "phpspec/prophecy-phpunit": "^2.0",
+        "phpstan/phpstan": "^0.12.83",
+        "phpstan/phpstan-phpunit": "^0.12.18",
+        "phpunit/phpunit": "^9.5",
+        "roave/security-advisories": "dev-latest",
+        "symfony/stopwatch": "^5.2",
+        "symfony/var-dumper": "^5.2"
     },
     "autoload": {
         "psr-4": {
@@ -30,6 +46,32 @@
         "psr-4": {
             "Donatorsky\\XmlTemplate\\Reader\\Tests\\": "tests"
         }
+    },
+    "scripts": {
+        "lint:cs:check": [
+            "php-cs-fixer fix -v --diff --dry-run --stop-on-violation --ansi --verbose"
+        ],
+        "lint:cs:check-all": [
+            "php-cs-fixer fix -v --dry-run --diff --ansi"
+        ],
+        "lint:cs:fix": [
+            "php-cs-fixer fix -v --ansi"
+        ],
+
+        "lint:stan:analyse": [
+            "phpstan analyse -l 1 src --memory-limit=512M --ansi --verbose",
+            "phpstan analyse -l 1 tests -c phpstan.tests.neon --memory-limit=512M --ansi --verbose"
+        ],
+
+        "lint:test:unit": [
+            "phpunit --colors=auto"
+        ],
+
+        "lint": [
+            "@lint:cs:check",
+            "@lint:stan:analyse",
+            "@lint:test:unit"
+        ]
     },
     "config": {
         "preferred-install": "dist",

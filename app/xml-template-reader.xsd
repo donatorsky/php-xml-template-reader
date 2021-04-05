@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+    <xs:annotation>
+        <xs:documentation source="https://phpunit.de/documentation.html">
+            This Schema file defines the rules by which the XML configuration file of XML Template Reader may be structured.
+        </xs:documentation>
+    </xs:annotation>
+    <xs:element name="template"
+                type="templateType">
+        <xs:annotation>
+            <xs:documentation>Root Element</xs:documentation>
+        </xs:annotation>
+    </xs:element>
+    <xs:complexType name="templateType">
+        <xs:annotation>
+            <xs:documentation>The main type specifying the document structure</xs:documentation>
+        </xs:annotation>
+    </xs:complexType>
+
+    <xs:attribute name="required"
+                  default="false"
+                  type="xs:boolean" />
+    <xs:attribute name="type"
+                  default="false">
+        <xs:simpleType>
+            <xs:restriction base="xs:string">
+                <xs:enumeration value="default" />
+                <xs:enumeration value="defects" />
+                <xs:enumeration value="depends" />
+                <xs:enumeration value="depends,defects" />
+                <xs:enumeration value="depends,duration" />
+                <xs:enumeration value="depends,random" />
+                <xs:enumeration value="depends,reverse" />
+                <xs:enumeration value="depends,size" />
+                <xs:enumeration value="duration" />
+                <xs:enumeration value="no-depends" />
+                <xs:enumeration value="no-depends,defects" />
+                <xs:enumeration value="no-depends,duration" />
+                <xs:enumeration value="no-depends,random" />
+                <xs:enumeration value="no-depends,reverse" />
+                <xs:enumeration value="no-depends,size" />
+                <xs:enumeration value="random" />
+                <xs:enumeration value="reverse" />
+                <xs:enumeration value="size" />
+            </xs:restriction>
+        </xs:simpleType>
+    </xs:attribute>
+</xs:schema>
