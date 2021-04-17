@@ -21,6 +21,8 @@ use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 
 class XmlTemplateReader
 {
+    public const DEFAULT_CHUNK_SIZE = 4096;
+
     public const CONFIGURATION_REQUIRED_TRUE = 'true';
 
     public const CONFIGURATION_REQUIRED_FALSE = 'false';
@@ -43,12 +45,24 @@ class XmlTemplateReader
 
     private EventDispatcherInterface $eventDispatcher;
 
+    /**
+     * @var string[]
+     */
     private array $path = [];
 
+    /**
+     * @var string[]
+     */
     private array $pathForHash = [];
 
-    private array $pathForObject = [];
+    /**
+     * @var non-empty-array<\Donatorsky\XmlTemplate\Reader\Models\Contracts\NodeInterface>
+     */
+    private array $pathForObject;
 
+    /**
+     * @var array<string,array<string,int>>
+     */
     private array $counter = [];
 
     /**
@@ -100,6 +114,7 @@ class XmlTemplateReader
 
     /**
      * Registers new rule class that can be used for validating and transforming parameter's data.
+     * Both name and aliases become case-insensitive.
      *
      * @param class-string<\Donatorsky\XmlTemplate\Reader\Rules\Contracts\RuleInterface> $ruleClassFqn
      * @param string[]                                                                   $aliases
@@ -128,7 +143,7 @@ class XmlTemplateReader
 
         $this->initializeParser();
 
-        $this->pathForObject[] = new Node('');
+        $this->pathForObject = [new Node('')];
 
         return $this;
     }
@@ -138,10 +153,15 @@ class XmlTemplateReader
         return null !== $this->xmlParser;
     }
 
+    /**
+     * @throws \Assert\AssertionFailedException When calling update without calling open first
+     */
     public function update(
         #[Language('XML')]
         string $xml
     ): self {
+        Assertion::true($this->isOpened());
+
         try {
             $result = \xml_parse($this->xmlParser, $xml);
 
@@ -169,6 +189,9 @@ class XmlTemplateReader
          */
         $wrapperObject = \array_pop($this->pathForObject);
 
+        /**
+         * @var non-empty-array<NodeInterface> $nodeValueObjects
+         */
         $nodeValueObjects = $wrapperObject->getRelations();
 
         return \reset($nodeValueObjects)->setParent(null);
@@ -189,13 +212,21 @@ class XmlTemplateReader
     }
 
     /**
-     * @throws \Assert\AssertionFailedException
+     * @throws \Assert\AssertionFailedException When file could not be opened
+     * @throws \Assert\AssertionFailedException When $chunkSize parameter is less than 1
      */
     public function readFile(
         string $path,
-        int $chunkSize = 4096
+        int $chunkSize = self::DEFAULT_CHUNK_SIZE
     ): ?NodeInterface {
-        return $this->readStream(\fopen($path, 'rb'), $chunkSize);
+        $stream = \fopen($path, 'rb');
+
+        Assertion::isResource($stream, 'Provided file could not be opened');
+
+        /**
+         * @var resource $stream
+         */
+        return $this->readStream($stream, $chunkSize);
     }
 
     /**
@@ -205,7 +236,7 @@ class XmlTemplateReader
      */
     public function readStream(
         $stream,
-        int $chunkSize = 4096
+        int $chunkSize = self::DEFAULT_CHUNK_SIZE
     ): ?NodeInterface {
         Assertion::greaterThan($chunkSize, 0, 'The read chunk size must be greater than 0');
 
@@ -213,7 +244,14 @@ class XmlTemplateReader
 
         try {
             while (!\feof($stream)) {
-                $this->update(\fread($stream, $chunkSize));
+                $xml = \fread($stream, $chunkSize);
+
+                Assertion::string($xml, 'Could not read XML data');
+
+                /**
+                 * @var string $xml
+                 */
+                $this->update($xml);
             }
         } finally {
             \fclose($stream);
@@ -227,10 +265,13 @@ class XmlTemplateReader
         $this->xmlParser = \xml_parser_create('UTF-8');
 
         \xml_set_object($this->xmlParser, $this);
-        \xml_set_element_handler($this->xmlParser, 'onTagOpenRead', 'onTagCloseRead');
-        \xml_set_character_data_handler($this->xmlParser, 'onCDataRead');
-        \xml_parser_set_option($this->xmlParser, XML_OPTION_CASE_FOLDING, false);
-        \xml_parser_set_option($this->xmlParser, XML_OPTION_SKIP_WHITE, true);
+        \xml_set_element_handler($this->xmlParser,
+            [$this, 'onTagOpenRead'],
+            [$this, 'onTagCloseRead'],
+        );
+        \xml_set_character_data_handler($this->xmlParser, [$this, 'onCDataRead']);
+        \xml_parser_set_option($this->xmlParser, XML_OPTION_CASE_FOLDING, 0);
+        \xml_parser_set_option($this->xmlParser, XML_OPTION_SKIP_WHITE, 1);
     }
 
     private function deinitializeParser(): void
@@ -243,7 +284,8 @@ class XmlTemplateReader
     }
 
     /**
-     * @param resource|\XMLParser $xmlParser
+     * @param resource|\XMLParser  $xmlParser
+     * @param array<string,string> $attributes
      */
     private function onTagOpenRead($xmlParser, string $nodeName, array $attributes): void
     {
@@ -313,6 +355,8 @@ class XmlTemplateReader
     }
 
     /**
+     * @param string[] $path
+     *
      * @throws \Assert\AssertionFailedException
      * @throws \Donatorsky\XmlTemplate\Reader\Exceptions\RuleValidationFailedException
      * @throws \Donatorsky\XmlTemplate\Reader\Exceptions\UnexpectedMultipleNodeReadException
@@ -322,7 +366,7 @@ class XmlTemplateReader
     {
         $children = $simpleXMLElement->children();
 
-        if (null === $children) {
+        if (0 === $children->count()) {
             return;
         }
 
@@ -434,7 +478,7 @@ class XmlTemplateReader
                     $attributes = $event->getAttributes();
 
                     /**
-                     * @var \Donatorsky\XmlTemplate\Reader\Models\Node $currentNodeValueObject
+                     * @var \Donatorsky\XmlTemplate\Reader\Models\Contracts\NodeInterface $currentNodeValueObject
                      */
                     $currentNodeValueObject = new $configuration['castTo']($currentNodeName, $parentNodeValueObject);
 

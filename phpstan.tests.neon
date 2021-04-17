@@ -2,5 +2,7 @@ includes:
     - ./vendor/phpstan/phpstan-phpunit/extension.neon
 
 parameters:
+    checkMissingIterableValueType: false
+
     ignoreErrors:
         # False positives

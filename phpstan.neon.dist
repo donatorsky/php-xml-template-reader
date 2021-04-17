@@ -2,3 +2,6 @@ includes:
 parameters:
     ignoreErrors:
         # False positives
+        - '#^Parameter \x231 \$(?:callback|function) of function call_user_func expects callable\(\): mixed, array\(Donatorsky\\XmlTemplate\\Reader\\Models\\Contracts\\NodeInterface, string\) given\.$#'
+        - '#^Parameter \x231 \$parser of function xml_parse expects (?:XMLParser|resource), resource\|XMLParser\|null given\.$#'
+        - '#^Parameter \x231 \$parser of function xml_parser_free expects (?:XMLParser|resource), resource\|XMLParser given\.$#'

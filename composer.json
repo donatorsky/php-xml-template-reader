@@ -28,6 +28,7 @@
         "symfony/event-dispatcher": "To use Symfony's evend dispatcher"
     },
     "require-dev": {
+        "fakerphp/faker": "^1.14",
         "friendsofphp/php-cs-fixer": "^2.18",
         "jetbrains/phpstorm-attributes": "^1.0",
         "phpspec/prophecy-phpunit": "^2.0",
@@ -50,15 +51,15 @@
     },
     "scripts": {
         "lint:cs:check-all": [
-            "php-cs-fixer fix -v --dry-run --diff --ansi"
+            "php-cs-fixer fix --dry-run --diff --ansi --verbose"
         ],
         "lint:cs:fix": [
-            "php-cs-fixer fix -v --ansi"
+            "php-cs-fixer fix --ansi --verbose"
         ],
 
         "lint:stan:analyse": [
-            "phpstan analyse -l 3 src --memory-limit=512M --ansi --verbose",
-            "phpstan analyse -l 3 tests -c phpstan.tests.neon --memory-limit=512M --ansi --verbose"
+            "phpstan analyse -l max src --memory-limit=256M --ansi --verbose",
+            "phpstan analyse -l 6 tests -c phpstan.tests.neon --memory-limit=256M --ansi --verbose"
         ],
 
         "lint:test:unit": [

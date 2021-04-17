@@ -14,6 +14,9 @@ class Node implements NodeInterface
 
     private ?string $contents;
 
+    /**
+     * @var array<string,mixed>
+     */
     private array $attributes;
 
     /**

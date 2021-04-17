@@ -11,10 +11,16 @@ class TagOpened
 
     private string $nodeName;
 
+    /**
+     * @var array<string,string>
+     */
     private array $attributes;
 
     private string $parentNodeHash;
 
+    /**
+     * @param array<string,string> $attributes
+     */
     public function __construct(
         NodeInterface $parentNodeValueObject,
         string $nodeName,
@@ -37,6 +43,9 @@ class TagOpened
         return $this->nodeName;
     }
 
+    /**
+     * @return array<string,string>
+     */
     public function getAttributes(): array
     {
         return $this->attributes;

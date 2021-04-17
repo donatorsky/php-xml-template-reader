@@ -3,7 +3,7 @@ declare(strict_types=1);
 
 namespace Donatorsky\XmlTemplate\Reader\Rules;
 
-use Donatorsky\XmlTemplate\Reader\Models\Node;
+use Donatorsky\XmlTemplate\Reader\Models\Contracts\NodeInterface;
 use Donatorsky\XmlTemplate\Reader\Rules\Contracts\ContextAwareRuleInterface;
 use Donatorsky\XmlTemplate\Reader\Rules\Contracts\RuleInterface;
 
@@ -13,14 +13,20 @@ class Callback implements RuleInterface, ContextAwareRuleInterface
 
     private string $processWith;
 
+    /**
+     * @var mixed[]
+     */
     private array $parameters;
 
-    private Node $context;
+    private NodeInterface $context;
 
+    /**
+     * @param mixed ...$parameters
+     */
     public function __construct(
         string $validateWith,
         string $processWith,
-        array $parameters = []
+        ...$parameters
     ) {
         $this->validateWith = $validateWith;
         $this->processWith = $processWith;
@@ -37,7 +43,7 @@ class Callback implements RuleInterface, ContextAwareRuleInterface
         return \call_user_func([$this->context, $this->processWith], $value, ...$this->parameters);
     }
 
-    public function withContext(Node $context): void
+    public function withContext(NodeInterface $context): void
     {
         $this->context = $context;
     }
