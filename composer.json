@@ -1,0 +1,39 @@
+{
+    "name": "xml/template",
+    "description": "The PHP XML Reader where you show how to read the XML, and it does the rest for you.",
+    "authors": [
+        {
+            "name": "Maciej Kudas",
+            "email": "maciejkudas@gmail.com",
+            "role": "Developer"
+        }
+    ],
+    "keywords": [
+        "xml",
+        "xml reader",
+        "xml template reader",
+        "xml parser",
+        "xml parsing"
+    ],
+    "require": {
+        "php": "^7.4|^8.0"
+    },
+    "require-dev": {
+        "roave/security-advisories": "dev-latest"
+    },
+    "autoload": {
+        "psr-4": {
+            "Donatorsky\\XmlTemplate\\Reader\\": "src"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Donatorsky\\XmlTemplate\\Reader\\Tests\\": "tests"
+        }
+    },
+    "config": {
+        "preferred-install": "dist",
+        "sort-packages": true,
+        "optimize-autoloader": true
+    }
+}
