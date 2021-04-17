@@ -52,12 +52,20 @@ class XmlTemplateReader
     private array $counter = [];
 
     /**
-     * @var resource|\XmlParser|null
+     * @var resource|\XMLParser|null
      */
-    private $xmlParser;
+    private $xmlParser = null;
+
+    /**
+     * Whether parser is currently reading tag's character data or not.
+     */
+    private bool $inCData = false;
+
+    private string $cData = '';
 
     /**
      * @throws \Assert\AssertionFailedException
+     * @throws \Exception If the XML data could not be parsed. See {@see \SimpleXMLElement::__construct} for more details.
      */
     public function __construct(
         #[Language('XML')]
@@ -203,10 +211,17 @@ class XmlTemplateReader
     }
 
     /**
-     * @param resource|\XmlParser $xmlParser
+     * @param resource|\XMLParser $xmlParser
      */
     private function onTagOpenRead($xmlParser, string $nodeName, array $attributes): void
     {
+        if ($this->inCData) {
+            $this->onCDATARead($xmlParser, $this->cData);
+
+            $this->inCData = false;
+            $this->cData = '';
+        }
+
         $this->path[] = $nodeName;
 
         $parentNodeValueObject = \end($this->pathForObject);
@@ -225,10 +240,12 @@ class XmlTemplateReader
     }
 
     /**
-     * @param resource|\XmlParser $xmlParser
+     * @param resource|\XMLParser $xmlParser
      */
     private function onCDataRead($xmlParser, string $contents): void
     {
+        $this->inCData = true;
+
         $this->eventDispatcher->dispatch(
             new CDataRead(
                 \end($this->pathForObject),
@@ -239,10 +256,17 @@ class XmlTemplateReader
     }
 
     /**
-     * @param resource|\XmlParser $xmlParser
+     * @param resource|\XMLParser $xmlParser
      */
     private function onTagCloseRead($xmlParser, string $nodeName): void
     {
+        if ($this->inCData) {
+            $this->onCDATARead($xmlParser, $this->cData);
+
+            $this->inCData = false;
+            $this->cData = '';
+        }
+
         \array_pop($this->pathForHash);
 
         $this->eventDispatcher->dispatch(
@@ -275,6 +299,7 @@ class XmlTemplateReader
         foreach ($children as $child) {
             $currentPath[] = $child->getName();
 
+            /** @var SimpleXMLElement $configurationAttributes */
             $configurationAttributes = $child->attributes($this->namespace, true);
             $currentPathString = \implode('/', $currentPath);
 
