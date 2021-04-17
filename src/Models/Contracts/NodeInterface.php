@@ -38,7 +38,7 @@ interface NodeInterface
     public function addRelation(string $name, self $nodeValueObject): self;
 
     /**
-     * @return array<string,static>
+     * @return array<string,NodeInterface>
      */
     public function getRelations(): array;
 

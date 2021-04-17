@@ -10,8 +10,8 @@ use Donatorsky\XmlTemplate\Reader\Events\TagOpened;
 use Donatorsky\XmlTemplate\Reader\Exceptions\RuleValidationFailedException;
 use Donatorsky\XmlTemplate\Reader\Exceptions\UnexpectedMultipleNodeReadException;
 use Donatorsky\XmlTemplate\Reader\Exceptions\UnknownRuleException;
+use Donatorsky\XmlTemplate\Reader\Models\Contracts\NodeInterface;
 use Donatorsky\XmlTemplate\Reader\Models\Node;
-use Donatorsky\XmlTemplate\Reader\Rules\Callback;
 use Donatorsky\XmlTemplate\Reader\Rules\Contracts\ContextAwareRuleInterface;
 use JetBrains\PhpStorm\Language;
 use RuntimeException;
@@ -52,9 +52,20 @@ class XmlTemplateReader
     private array $counter = [];
 
     /**
+     * @var array<string,class-string<\Donatorsky\XmlTemplate\Reader\Rules\Contracts\RuleInterface>>
+     */
+    private array $rulesClassmap = [
+        'greaterthan' => Rules\GreaterThan::class,
+        'int'         => Rules\Integer::class,
+        'integer'     => Rules\Integer::class,
+        'required'    => Rules\Required::class,
+        'trim'        => Rules\Trim::class,
+    ];
+
+    /**
      * @var resource|\XMLParser|null
      */
-    private $xmlParser = null;
+    private $xmlParser;
 
     /**
      * Whether parser is currently reading tag's character data or not.
@@ -65,7 +76,7 @@ class XmlTemplateReader
 
     /**
      * @throws \Assert\AssertionFailedException
-     * @throws \Exception If the XML data could not be parsed. See {@see \SimpleXMLElement::__construct} for more details.
+     * @throws \Exception                       If the XML data could not be parsed. See {@see \SimpleXMLElement::__construct} for more details.
      */
     public function __construct(
         #[Language('XML')]
@@ -85,6 +96,27 @@ class XmlTemplateReader
         $this->eventDispatcher = $eventDispatcher ?? new EventDispatcher();
 
         $this->addListenersFromTemplate($simpleXMLElement);
+    }
+
+    /**
+     * Registers new rule class that can be used for validating and transforming parameter's data.
+     *
+     * @param class-string<\Donatorsky\XmlTemplate\Reader\Rules\Contracts\RuleInterface> $ruleClassFqn
+     * @param string[]                                                                   $aliases
+     *
+     * @throws \Assert\AssertionFailedException
+     */
+    public function registerRuleFilter(string $name, string $ruleClassFqn, array $aliases = []): self
+    {
+        Assertion::subclassOf($ruleClassFqn, Rules\Contracts\RuleInterface::class);
+
+        $aliases[] = $name;
+
+        foreach ($aliases as $alias) {
+            $this->rulesClassmap[\strtolower($alias)] = $ruleClassFqn;
+        }
+
+        return $this;
     }
 
     /**
@@ -124,7 +156,7 @@ class XmlTemplateReader
     /**
      * @throws \Assert\AssertionFailedException When XML reading is not finished yet and there are still open nodes
      */
-    public function close(): Node
+    public function close(): NodeInterface
     {
         $this->deinitializeParser();
 
@@ -133,7 +165,7 @@ class XmlTemplateReader
         $this->counter = [];
 
         /**
-         * @var \Donatorsky\XmlTemplate\Reader\Models\Node $wrapperObject
+         * @var \Donatorsky\XmlTemplate\Reader\Models\Contracts\NodeInterface $wrapperObject
          */
         $wrapperObject = \array_pop($this->pathForObject);
 
@@ -148,7 +180,7 @@ class XmlTemplateReader
     public function read(
         #[Language('XML')]
         string $xml
-    ): Node {
+    ): NodeInterface {
         $this->open();
 
         $this->update($xml);
@@ -162,7 +194,7 @@ class XmlTemplateReader
     public function readFile(
         string $path,
         int $chunkSize = 4096
-    ): ?object {
+    ): ?NodeInterface {
         return $this->readStream(\fopen($path, 'rb'), $chunkSize);
     }
 
@@ -174,7 +206,7 @@ class XmlTemplateReader
     public function readStream(
         $stream,
         int $chunkSize = 4096
-    ): ?object {
+    ): ?NodeInterface {
         Assertion::greaterThan($chunkSize, 0, 'The read chunk size must be greater than 0');
 
         $this->open();
@@ -299,7 +331,7 @@ class XmlTemplateReader
         foreach ($children as $child) {
             $currentPath[] = $child->getName();
 
-            /** @var SimpleXMLElement $configurationAttributes */
+            /** @var \SimpleXMLElement $configurationAttributes */
             $configurationAttributes = $child->attributes($this->namespace, true);
             $currentPathString = \implode('/', $currentPath);
 
@@ -369,39 +401,15 @@ class XmlTemplateReader
                 }
 
                 foreach ($matches as $match) {
+                    $ruleClass = $this->rulesClassmap[\strtolower($match['rule'])] ?? null;
+
+                    if (null === $ruleClass) {
+                        throw new UnknownRuleException($match['rule']);
+                    }
+
                     $parameters = isset($match['parameters']) ?
                         \preg_split('/\s*,\s*/', \trim($match['parameters'])) :
                         [];
-
-                    $validateRuleMethodExists = \method_exists(
-                        $configuration['castTo'],
-                        $validateRuleMethod = \sprintf('validate%sRule', \ucfirst($match['rule'])),
-                    );
-
-                    $processRuleMethodExists = \method_exists(
-                        $configuration['castTo'],
-                        $processRuleMethod = \sprintf('process%sRule', \ucfirst($match['rule'])),
-                    );
-
-                    if ($validateRuleMethodExists || $processRuleMethodExists) {
-                        $rules[] = new Callback(
-                            $validateRuleMethodExists ?
-                                $validateRuleMethod :
-                                'noopValidateRule',
-                            $processRuleMethodExists ?
-                                $processRuleMethod :
-                                'noopProcessRule',
-                            $parameters
-                        );
-
-                        continue;
-                    }
-
-                    $ruleClass = \sprintf('\\Donatorsky\XmlTemplate\Reader\\Rules\\%s', \ucfirst($match['rule']));
-
-                    if (!\class_exists($ruleClass)) {
-                        throw new UnknownRuleException($match['rule']);
-                    }
 
                     $rules[] = new $ruleClass(...$parameters);
                 }

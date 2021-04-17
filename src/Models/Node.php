@@ -10,19 +10,19 @@ class Node implements NodeInterface
 {
     private string $nodeName;
 
-    private ?Node $parent;
+    private ?NodeInterface $parent;
 
     private ?string $contents;
 
     private array $attributes;
 
     /**
-     * @var array<string,static>
+     * @var array<string,NodeInterface>
      */
     private array $relations = [];
 
     /**
-     * @var array<string,static[]>
+     * @var array<string,NodeInterface[]>
      */
     private array $children = [];
 
@@ -107,7 +107,7 @@ class Node implements NodeInterface
         return $this;
     }
 
-    public function getParent(): ?self
+    public function getParent(): ?NodeInterface
     {
         return $this->parent;
     }
@@ -127,7 +127,7 @@ class Node implements NodeInterface
     }
 
     /**
-     * @return array<string,static>
+     * @return array<string,NodeInterface>
      */
     public function getRelations(): array
     {
