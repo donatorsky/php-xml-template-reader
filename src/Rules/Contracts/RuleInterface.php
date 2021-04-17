@@ -7,8 +7,6 @@ interface RuleInterface
 {
     /**
      * @param mixed $value
-     *
-     * @return bool
      */
     public function passes($value): bool;
 

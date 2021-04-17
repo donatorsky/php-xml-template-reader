@@ -4,7 +4,6 @@ declare(strict_types=1);
 namespace Donatorsky\XmlTemplate\Reader\Exceptions;
 
 use Donatorsky\XmlTemplate\Reader\Rules\Contracts\RuleInterface;
-use JetBrains\PhpStorm\Pure;
 use RuntimeException;
 use Throwable;
 
@@ -24,7 +23,6 @@ class RuleValidationFailedException extends RuntimeException implements XmlTempl
     /**
      * @param mixed $attributeValue
      */
-    #[Pure]
     public function __construct(
         string $attributeName,
         $attributeValue,
@@ -32,12 +30,12 @@ class RuleValidationFailedException extends RuntimeException implements XmlTempl
         RuleInterface $rule,
         ?Throwable $previous = null
     ) {
-        parent::__construct(sprintf(
+        parent::__construct(\sprintf(
             'Value "%s" of attribute "%s" in node "%s" does not pass %s rule',
             $attributeValue,
             $attributeName,
             $fullNodePath,
-            get_class($rule),
+            \get_class($rule),
         ), 0, $previous);
 
         $this->attributeName = $attributeName;

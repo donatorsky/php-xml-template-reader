@@ -8,7 +8,6 @@ use JetBrains\PhpStorm\ArrayShape;
 
 class Node implements NodeInterface
 {
-
     private string $nodeName;
 
     private ?Node $parent;
@@ -46,16 +45,16 @@ class Node implements NodeInterface
     public function toArray(): array
     {
         return [
-            'node_name'  => $this->nodeName,
-            'contents'   => $this->contents,
-            'attributes' => $this->attributes,
-            'relations'  => array_map(
-                static fn(self $nodeValueObject): array => $nodeValueObject->toArray(),
+            'node_name'                                  => $this->nodeName,
+            'contents'                                   => $this->contents,
+            'attributes'                                 => $this->attributes,
+            'relations'                                  => \array_map(
+                static fn (self $nodeValueObject): array => $nodeValueObject->toArray(),
                 $this->relations,
             ),
-            'children'   => array_map(
-                static fn(array $nodeValueObjects): array => array_map(
-                    static fn(self $nodeValueObject): array => $nodeValueObject->toArray(),
+            'children'                                       => \array_map(
+                static fn (array $nodeValueObjects): array   => \array_map(
+                    static fn (self $nodeValueObject): array => $nodeValueObject->toArray(),
                     $nodeValueObjects,
                 ),
                 $this->children,

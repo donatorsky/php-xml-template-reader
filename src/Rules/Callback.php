@@ -29,12 +29,12 @@ class Callback implements RuleInterface, ContextAwareRuleInterface
 
     public function passes($value): bool
     {
-        return call_user_func([$this->context, $this->validateWith], $value, ...$this->parameters);
+        return \call_user_func([$this->context, $this->validateWith], $value, ...$this->parameters);
     }
 
     public function process($value)
     {
-        return call_user_func([$this->context, $this->processWith], $value, ...$this->parameters);
+        return \call_user_func([$this->context, $this->processWith], $value, ...$this->parameters);
     }
 
     public function withContext(Node $context): void

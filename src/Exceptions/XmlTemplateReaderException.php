@@ -7,5 +7,4 @@ use Throwable;
 
 interface XmlTemplateReaderException extends Throwable
 {
-
 }

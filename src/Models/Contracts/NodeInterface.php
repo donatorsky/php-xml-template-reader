@@ -7,7 +7,6 @@ use JetBrains\PhpStorm\ArrayShape;
 
 interface NodeInterface
 {
-
     #[ArrayShape(['node_name' => 'string', 'contents' => 'null|string', 'attributes' => 'array', 'relations' => 'array[]', 'children' => 'array[]'])]
     public function toArray(): array;
 

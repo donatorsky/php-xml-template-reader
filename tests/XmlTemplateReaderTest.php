@@ -42,7 +42,7 @@ XML;
 
     private const FILE = __DIR__ . DIRECTORY_SEPARATOR . 'example.xml';
 
-    public function testDebug()
+    public function testDebug(): void
     {
         $eventDispatcher = new TraceableEventDispatcher(
             new EventDispatcher(),
@@ -55,7 +55,7 @@ XML;
         dd(
             $xmlTemplateReader,
 
-            $nodeValueObject = $xmlTemplateReader->read(file_get_contents(self::FILE)),
+            $nodeValueObject = $xmlTemplateReader->read(\file_get_contents(self::FILE)),
             $nodeValueObject->toArray(),
 
             //$eventDispatcher->getCalledListeners(),
@@ -64,7 +64,7 @@ XML;
             //$eventDispatcher->getListeners(),
 
             $xmlTemplateReader->readFile(self::FILE),
-            $xmlTemplateReader->readStream(fopen(self::FILE, 'r')),
+            $xmlTemplateReader->readStream(\fopen(self::FILE, 'r')),
 
             $xmlTemplateReader,
         );

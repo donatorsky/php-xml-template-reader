@@ -3,7 +3,6 @@ declare(strict_types=1);
 
 namespace Donatorsky\XmlTemplate\Reader\Exceptions;
 
-use JetBrains\PhpStorm\Pure;
 use RuntimeException;
 use Throwable;
 
@@ -11,12 +10,9 @@ class UnexpectedMultipleNodeReadException extends RuntimeException implements Xm
 {
     private string $fullNodePath;
 
-    #[Pure]
-    public function __construct(
-        string $fullNodePath,
-        ?Throwable $previous = null
-    ) {
-        parent::__construct(sprintf(
+    public function __construct(string $fullNodePath, ?Throwable $previous = null)
+    {
+        parent::__construct(\sprintf(
             'The node "%s" is expected to be a single node, but another was read',
             $fullNodePath,
         ), 0, $previous);
