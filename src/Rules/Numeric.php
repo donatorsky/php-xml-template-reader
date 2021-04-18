@@ -5,15 +5,20 @@ namespace Donatorsky\XmlTemplate\Reader\Rules;
 
 use Donatorsky\XmlTemplate\Reader\Rules\Contracts\RuleInterface;
 
-class Integer implements RuleInterface
+class Numeric implements RuleInterface
 {
     public function passes($value): bool
     {
         return \is_numeric($value);
     }
 
-    public function process($value): int
+    /**
+     * @param mixed $value
+     *
+     * @return float|int
+     */
+    public function process($value)
     {
-        return (int) $value;
+        return $value + 0;
     }
 }

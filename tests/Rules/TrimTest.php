@@ -14,7 +14,9 @@ use stdClass;
  */
 class TrimTest extends TestCase
 {
-    use WithFaker;
+    use WithFaker {
+        setUp as setUpFaker;
+    }
 
     private Trim $rule;
 
@@ -53,9 +55,6 @@ class TrimTest extends TestCase
         self::assertTrue($this->rule->passes($this->faker->sentence));
     }
 
-    /**
-     * @depends testStringPassesValidation
-     */
     public function testStringIsTrimmed(): void
     {
         $value = $this->faker->sentence;

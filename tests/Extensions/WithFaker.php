@@ -10,7 +10,7 @@ trait WithFaker
 {
     protected Generator $faker;
 
-    protected function setUpFaker(string $locale = Factory::DEFAULT_LOCALE): void
+    protected function setUp(string $locale = Factory::DEFAULT_LOCALE): void
     {
         $this->faker = Factory::create($locale);
     }

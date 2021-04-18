@@ -16,16 +16,23 @@ class RuleValidationFailedException extends RuntimeException implements XmlTempl
      */
     private $attributeValue;
 
+    /**
+     * @var mixed
+     */
+    private $attributeOriginalValue;
+
     private string $fullNodePath;
 
     private RuleInterface $rule;
 
     /**
      * @param mixed $attributeValue
+     * @param mixed $attributeOriginalValue
      */
     public function __construct(
         string $attributeName,
         $attributeValue,
+        $attributeOriginalValue,
         string $fullNodePath,
         RuleInterface $rule,
         ?Throwable $previous = null
@@ -40,6 +47,7 @@ class RuleValidationFailedException extends RuntimeException implements XmlTempl
 
         $this->attributeName = $attributeName;
         $this->attributeValue = $attributeValue;
+        $this->attributeOriginalValue = $attributeOriginalValue;
         $this->fullNodePath = $fullNodePath;
         $this->rule = $rule;
     }
@@ -50,11 +58,23 @@ class RuleValidationFailedException extends RuntimeException implements XmlTempl
     }
 
     /**
+     * Returns the current (i.e. including all transformations already performed) value that failed the transformation.
+     *
      * @return mixed
      */
     public function getAttributeValue()
     {
         return $this->attributeValue;
+    }
+
+    /**
+     * Returns the value of the attribute before transformation started.
+     *
+     * @return mixed
+     */
+    public function getAttributeOriginalValue()
+    {
+        return $this->attributeOriginalValue;
     }
 
     public function getFullNodePath(): string

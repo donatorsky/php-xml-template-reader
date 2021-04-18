@@ -69,9 +69,11 @@ class XmlTemplateReader
      * @var array<string,class-string<\Donatorsky\XmlTemplate\Reader\Rules\Contracts\RuleInterface>>
      */
     private array $rulesClassmap = [
+        'float'       => Rules\FloatNumber::class,
         'greaterthan' => Rules\GreaterThan::class,
-        'int'         => Rules\Integer::class,
-        'integer'     => Rules\Integer::class,
+        'int'         => Rules\IntegerNumber::class,
+        'integer'     => Rules\IntegerNumber::class,
+        'numeric'     => Rules\Numeric::class,
         'required'    => Rules\Required::class,
         'trim'        => Rules\Trim::class,
     ];
@@ -491,19 +493,21 @@ class XmlTemplateReader
                             continue;
                         }
 
+                        $newValue = $value;
+
                         foreach ($configuration['attributesRules'][$name] as $rule) {
                             if ($rule instanceof ContextAwareRuleInterface) {
                                 $rule->withContext($currentNodeValueObject);
                             }
 
-                            if (!$rule->passes($value)) {
-                                throw new RuleValidationFailedException($name, $value, $currentPathString, $rule);
+                            if (!$rule->passes($newValue)) {
+                                throw new RuleValidationFailedException($name, $newValue, $value, $currentPathString, $rule);
                             }
 
-                            $value = $rule->process($value);
+                            $newValue = $rule->process($newValue);
                         }
 
-                        $currentNodeValueObject->setAttribute($name, $value);
+                        $currentNodeValueObject->setAttribute($name, $newValue);
                     }
 
                     switch ($configuration['type']) {
