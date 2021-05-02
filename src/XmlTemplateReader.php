@@ -10,6 +10,7 @@ use Donatorsky\XmlTemplate\Reader\Events\TagOpened;
 use Donatorsky\XmlTemplate\Reader\Exceptions\RuleValidationFailedException;
 use Donatorsky\XmlTemplate\Reader\Exceptions\UnexpectedMultipleNodeReadException;
 use Donatorsky\XmlTemplate\Reader\Exceptions\UnknownRuleException;
+use Donatorsky\XmlTemplate\Reader\Models\Collection;
 use Donatorsky\XmlTemplate\Reader\Models\Contracts\NodeInterface;
 use Donatorsky\XmlTemplate\Reader\Models\Node;
 use Donatorsky\XmlTemplate\Reader\Rules\Contracts\ContextAwareRuleInterface;
@@ -192,11 +193,11 @@ class XmlTemplateReader
         $wrapperObject = \array_pop($this->pathForObject);
 
         /**
-         * @var non-empty-array<NodeInterface> $nodeValueObjects
+         * @var \Donatorsky\XmlTemplate\Reader\Models\Contracts\NodeInterface $nodeValueObject
          */
-        $nodeValueObjects = $wrapperObject->getRelations();
+        $nodeValueObject = $wrapperObject->getRelations()->first();
 
-        return \reset($nodeValueObjects)->setParent(null);
+        return $nodeValueObject->setParent(null);
     }
 
     /**
@@ -483,11 +484,12 @@ class XmlTemplateReader
                      * @var \Donatorsky\XmlTemplate\Reader\Models\Contracts\NodeInterface $currentNodeValueObject
                      */
                     $currentNodeValueObject = new $configuration['castTo']($currentNodeName, $parentNodeValueObject);
+                    $currentNodeAttributesMap = $currentNodeValueObject->getAttributes();
 
                     foreach ($attributes as $name => $value) {
                         if (!isset($configuration['attributesRules'][$name])) {
                             if (self::CONFIGURATION_COLLECT_ATTRIBUTES_ALL === $configuration['collectAttributes']) {
-                                $currentNodeValueObject->setAttribute($name, $value);
+                                $currentNodeAttributesMap->set($name, $value);
                             }
 
                             continue;
@@ -507,17 +509,27 @@ class XmlTemplateReader
                             $newValue = $rule->process($newValue);
                         }
 
-                        $currentNodeValueObject->setAttribute($name, $newValue);
+                        $currentNodeAttributesMap->set($name, $newValue);
                     }
 
                     switch ($configuration['type']) {
                         case self::CONFIGURATION_TYPE_SINGLE:
-                            $parentNodeValueObject->addRelation($currentNodeName, $currentNodeValueObject);
+                            $parentNodeValueObject->getRelations()
+                                ->set($currentNodeName, $currentNodeValueObject);
 
                         break;
 
                         case self::CONFIGURATION_TYPE_COLLECTION:
-                            $parentNodeValueObject->addChild($currentNodeName, $currentNodeValueObject);
+                            $parentNodeChildrenMap = $parentNodeValueObject->getChildren();
+
+                            if ($parentNodeChildrenMap->has($currentNodeName)) {
+                                $collection = $parentNodeChildrenMap->get($currentNodeName);
+                            } else {
+                                $collection = new Collection();
+                                $parentNodeChildrenMap->set($currentNodeName, $collection);
+                            }
+
+                            $collection->push($currentNodeValueObject);
 
                         break;
                     }
@@ -548,7 +560,7 @@ class XmlTemplateReader
             // Tag Close Listener
             $this->eventDispatcher->addListener(
                 \sprintf('close@%s', $currentPathString),
-                function (TagClosed $event): void {
+                function (): void {
                     \array_pop($this->pathForObject);
                 }
             );

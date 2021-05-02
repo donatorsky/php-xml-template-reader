@@ -7,6 +7,10 @@
         <include>
             <directory suffix=".php">./src</directory>
         </include>
+        <exclude>
+            <directory suffix=".php">./src/Events</directory>
+            <directory suffix=".php">./src/Exceptions</directory>
+        </exclude>
     </coverage>
     <testsuites>
         <testsuite name="Unit">

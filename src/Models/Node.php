@@ -15,87 +15,72 @@ class Node implements NodeInterface
     private ?string $contents;
 
     /**
-     * @var array<string,mixed>
+     * @var Map<mixed>
      */
-    private array $attributes;
+    private Map $attributes;
 
     /**
-     * @var array<string,NodeInterface>
+     * @var Map<NodeInterface>
      */
-    private array $relations = [];
+    private Map $relations;
 
     /**
-     * @var array<string,NodeInterface[]>
+     * @var Map<Collection<NodeInterface>>
      */
-    private array $children = [];
+    private Map $children;
 
     /**
      * @param array<string,mixed> $attributes
      */
     public function __construct(
         string $nodeName,
-        ?self $parent = null,
+        ?NodeInterface $parent = null,
         ?string $contents = null,
         array $attributes = []
     ) {
         $this->nodeName = $nodeName;
         $this->parent = $parent;
         $this->contents = $contents;
-        $this->attributes = $attributes;
+
+        $this->attributes = new Map($attributes);
+        $this->relations = new Map();
+        $this->children = new Map();
     }
 
     #[ArrayShape(['node_name' => 'string', 'contents' => 'null|string', 'attributes' => 'array', 'relations' => 'array[]', 'children' => 'array[]'])]
     public function toArray(): array
     {
         return [
-            'node_name'                                  => $this->nodeName,
-            'contents'                                   => $this->contents,
-            'attributes'                                 => $this->attributes,
+            'node_name'  => $this->nodeName,
+            'contents'   => $this->contents,
+            'attributes' => $this->attributes->toArray(),
+
             'relations'                                  => \array_map(
                 static fn (self $nodeValueObject): array => $nodeValueObject->toArray(),
-                $this->relations,
+                $this->relations->toArray(),
             ),
-            'children'                                       => \array_map(
-                static fn (array $nodeValueObjects): array   => \array_map(
-                    static fn (self $nodeValueObject): array => $nodeValueObject->toArray(),
-                    $nodeValueObjects,
+
+            'children'                                          => \array_map(
+                static fn (Collection $nodeValueObjects): array => \array_map(
+                    static fn (self $nodeValueObject): array    => $nodeValueObject->toArray(),
+                    $nodeValueObjects->toArray(),
                 ),
-                $this->children,
+                $this->children->toArray(),
             ),
         ];
     }
 
+    public function getNodeName(): string
+    {
+        return $this->nodeName;
+    }
+
     /**
-     * @return array<string,mixed>
+     * @return \Donatorsky\XmlTemplate\Reader\Models\Map<mixed>
      */
-    public function getAttributes(): array
+    public function getAttributes(): Map
     {
         return $this->attributes;
-    }
-
-    /**
-     * @return mixed
-     */
-    public function getAttribute(string $name)
-    {
-        return $this->attributes[$name];
-    }
-
-    /**
-     * @param mixed $value
-     */
-    public function setAttribute(string $name, $value): self
-    {
-        $this->attributes[$name] = $value;
-
-        return $this;
-    }
-
-    public function removeAttribute(string $name): self
-    {
-        unset($this->attributes[$name]);
-
-        return $this;
     }
 
     public function getContents(): ?string
@@ -110,6 +95,11 @@ class Node implements NodeInterface
         return $this;
     }
 
+    public function hasContents(): bool
+    {
+        return null !== $this->contents;
+    }
+
     public function getParent(): ?NodeInterface
     {
         return $this->parent;
@@ -122,40 +112,18 @@ class Node implements NodeInterface
         return $this;
     }
 
-    public function addRelation(string $name, NodeInterface $nodeValueObject): self
+    public function hasParent(): bool
     {
-        $this->relations[$name] = $nodeValueObject;
-
-        return $this;
+        return null !== $this->parent;
     }
 
-    /**
-     * @return array<string,NodeInterface>
-     */
-    public function getRelations(): array
+    public function getRelations(): Map
     {
         return $this->relations;
     }
 
-    public function addChild(string $name, NodeInterface $nodeValueObject): self
+    public function getChildren(): Map
     {
-        $this->children[$name] ??= [];
-
-        $this->children[$name][] = $nodeValueObject;
-
-        return $this;
-    }
-
-    public function noopValidateRule(): bool
-    {
-        return true;
-    }
-
-    /**
-     * @param mixed $value
-     */
-    public function noopProcessRule($value)
-    {
-        return $value;
+        return $this->children;
     }
 }

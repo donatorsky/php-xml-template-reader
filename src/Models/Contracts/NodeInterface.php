@@ -3,6 +3,8 @@ declare(strict_types=1);
 
 namespace Donatorsky\XmlTemplate\Reader\Models\Contracts;
 
+use Donatorsky\XmlTemplate\Reader\Models\Collection;
+use Donatorsky\XmlTemplate\Reader\Models\Map;
 use JetBrains\PhpStorm\ArrayShape;
 
 interface NodeInterface
@@ -14,45 +16,29 @@ interface NodeInterface
     public function toArray(): array;
 
     /**
-     * @return array<string,mixed>
+     * @return Map<mixed>
      */
-    public function getAttributes(): array;
-
-    /**
-     * @return mixed
-     */
-    public function getAttribute(string $name);
-
-    /**
-     * @param mixed $value
-     */
-    public function setAttribute(string $name, $value): self;
-
-    public function removeAttribute(string $name): self;
+    public function getAttributes(): Map;
 
     public function getContents(): ?string;
 
     public function setContents(?string $contents): self;
 
+    public function hasContents(): bool;
+
     public function getParent(): ?self;
 
     public function setParent(?self $parent): self;
 
-    public function addRelation(string $name, self $nodeValueObject): self;
+    public function hasParent(): bool;
 
     /**
-     * @return array<string,NodeInterface>
+     * @return Map<NodeInterface>
      */
-    public function getRelations(): array;
-
-    public function addChild(string $name, self $nodeValueObject): self;
-
-    public function noopValidateRule(): bool;
+    public function getRelations(): Map;
 
     /**
-     * @param mixed $value
-     *
-     * @return mixed
+     * @return Map<Collection<NodeInterface>>
      */
-    public function noopProcessRule($value);
+    public function getChildren(): Map;
 }

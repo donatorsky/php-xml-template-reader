@@ -33,7 +33,7 @@
         "jangregor/phpstan-prophecy": "^0.8.1",
         "jetbrains/phpstorm-attributes": "^1.0",
         "phpspec/prophecy-phpunit": "^2.0",
-        "phpstan/phpstan": "^0.12.83",
+        "phpstan/phpstan": "^0.12.85",
         "phpstan/phpstan-phpunit": "^0.12.18",
         "phpunit/phpunit": "^9.5",
         "roave/security-advisories": "dev-latest",

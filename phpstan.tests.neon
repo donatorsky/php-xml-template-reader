@@ -4,6 +4,8 @@ includes:
 
 parameters:
     checkMissingIterableValueType: false
+    checkGenericClassInNonGenericObjectType: false
 
     ignoreErrors:
         # False positives
+        - '#^Parameter \x232 \$value of method Donatorsky\\XmlTemplate\\Reader\\Models\\Map<Donatorsky\\XmlTemplate\\Reader\\Models\\Collection<Donatorsky\\XmlTemplate\\Reader\\Models\\Contracts\\NodeInterface>>::set\(\) expects Donatorsky\\XmlTemplate\\Reader\\Models\\Collection<Donatorsky\\XmlTemplate\\Reader\\Models\\Contracts\\NodeInterface>, Donatorsky\\XmlTemplate\\Reader\\Models\\Collection<Donatorsky\\XmlTemplate\\Reader\\Models\\Node> given\.$#'
