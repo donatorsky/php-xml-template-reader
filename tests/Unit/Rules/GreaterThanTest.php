@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 
-namespace Donatorsky\XmlTemplate\Reader\Tests\Rules;
+namespace Donatorsky\XmlTemplate\Reader\Tests\Unit\Rules;
 
 use Donatorsky\XmlTemplate\Reader\Rules\GreaterThan;
 use Donatorsky\XmlTemplate\Reader\Tests\Extensions\WithFaker;

@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 
-namespace Donatorsky\XmlTemplate\Reader\Tests\Models;
+namespace Donatorsky\XmlTemplate\Reader\Tests\Unit\Models;
 
 use Donatorsky\XmlTemplate\Reader\Models\Collection;
 use Donatorsky\XmlTemplate\Reader\Tests\Extensions\WithFaker;

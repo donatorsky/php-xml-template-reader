@@ -77,6 +77,7 @@ class XmlTemplateReader
         'numeric'     => Rules\Numeric::class,
         'required'    => Rules\Required::class,
         'trim'        => Rules\Trim::class,
+        'callback'    => Rules\Callback::class,
     ];
 
     /**
@@ -91,15 +92,19 @@ class XmlTemplateReader
 
     private string $cData = '';
 
+    public function __construct(?EventDispatcherInterface $eventDispatcher = null)
+    {
+        $this->eventDispatcher = $eventDispatcher ?? new EventDispatcher();
+    }
+
     /**
-     * @throws \Assert\AssertionFailedException
+     * @throws \Assert\AssertionFailedException When template namespace configuration is incorrect
      * @throws \Exception                       If the XML data could not be parsed. See {@see \SimpleXMLElement::__construct} for more details.
      */
-    public function __construct(
+    public function loadTemplate(
         #[Language('XML')]
-        string $template,
-        ?EventDispatcherInterface $eventDispatcher = null
-    ) {
+        string $template
+    ): self {
         $simpleXMLElement = new SimpleXMLElement(
             $template,
             LIBXML_NOERROR | LIBXML_NOWARNING | LIBXML_NONET,
@@ -110,9 +115,23 @@ class XmlTemplateReader
         Assertion::count($namespaces, 1, 'You need to specify exactly one template namespace, %2$d provided');
 
         $this->namespace = (string) \key($namespaces);
-        $this->eventDispatcher = $eventDispatcher ?? new EventDispatcher();
 
         $this->addListenersFromTemplate($simpleXMLElement);
+
+        return $this;
+    }
+
+    public function getNamespace(): string
+    {
+        return $this->namespace;
+    }
+
+    /**
+     * @return \Symfony\Component\EventDispatcher\EventDispatcher|\Symfony\Component\EventDispatcher\EventDispatcherInterface
+     */
+    public function getEventDispatcher()
+    {
+        return $this->eventDispatcher;
     }
 
     /**
@@ -158,6 +177,7 @@ class XmlTemplateReader
 
     /**
      * @throws \Assert\AssertionFailedException When calling update without calling open first
+     * @throws \Throwable                       When there was an error during parsing
      */
     public function update(
         #[Language('XML')]
@@ -165,12 +185,19 @@ class XmlTemplateReader
     ): self {
         Assertion::true($this->isOpened());
 
+        $exception = null;
+
         try {
             $result = \xml_parse($this->xmlParser, $xml);
 
             //TODO: Do something with invalid result
+        } catch (\Throwable $exception) {
         } finally {
-            $this->deinitializeParser();
+            if (null !== $exception) {
+                $this->deinitializeParser();
+
+                throw $exception;
+            }
         }
 
         return $this;
@@ -444,7 +471,9 @@ class XmlTemplateReader
                 $rules = [];
 
                 if (false === \preg_match_all('/(?P<rule>\w+)(?:\s*:\s*(?P<parameters>[^|]+)\s*)?/m', (string) $rulesDefinition, $matches, PREG_SET_ORDER)) {
+                    // @codeCoverageIgnoreStart
                     throw new RuntimeException('Unexpected PRCE2 error');
+                    // @codeCoverageIgnoreEnd
                 }
 
                 foreach ($matches as $match) {
@@ -467,7 +496,7 @@ class XmlTemplateReader
             // Tag Open Listener
             $this->eventDispatcher->addListener(
                 \sprintf('open@%s', $currentPathString),
-                function (TagOpened $event) use (&$configuration, &$currentPathString): void {
+                function (TagOpened $event) use ($configuration, $currentPathString): void {
                     $parentNodeHash = $event->getParentNodeHash();
                     $currentNodeName = $event->getNodeName();
 
@@ -541,7 +570,7 @@ class XmlTemplateReader
             // Tag CData listener
             $this->eventDispatcher->addListener(
                 \sprintf('cdata@%s', $currentPathString),
-                static function (CDataRead $event) use (&$configuration): void {
+                static function (CDataRead $event) use ($configuration): void {
                     if (self::CONFIGURATION_CONTENTS_NONE === $configuration['contents']) {
                         return;
                     }

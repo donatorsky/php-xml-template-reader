@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 
-namespace Donatorsky\XmlTemplate\Reader\Tests\Rules;
+namespace Donatorsky\XmlTemplate\Reader\Tests\Unit\Rules;
 
 use Donatorsky\XmlTemplate\Reader\Models\Contracts\NodeInterface;
 use Donatorsky\XmlTemplate\Reader\Rules\Callback;
@@ -20,7 +20,7 @@ class CallbackTest extends TestCase
     use ProphecyTrait;
 
     use WithFaker {
-        setUp as setUpFaker;
+        WithFaker::setUp as setUpFaker;
     }
 
     /**

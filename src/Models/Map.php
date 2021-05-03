@@ -38,7 +38,7 @@ class Map implements ArrayAccess, IteratorAggregate, Countable
     }
 
     /**
-     * @throws \OutOfBoundsException When $name relation does not exist
+     * @throws \OutOfBoundsException When element $name does not exist
      *
      * @return TValue
      */
