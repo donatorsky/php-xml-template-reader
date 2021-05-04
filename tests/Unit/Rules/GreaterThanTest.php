@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace Donatorsky\XmlTemplate\Reader\Tests\Unit\Rules;
 
+use Assert\InvalidArgumentException;
 use Donatorsky\XmlTemplate\Reader\Rules\GreaterThan;
 use Donatorsky\XmlTemplate\Reader\Tests\Extensions\WithFaker;
 use PHPUnit\Framework\TestCase;
@@ -21,7 +22,7 @@ class GreaterThanTest extends TestCase
     {
         $threshold = $this->fakeNonNumericValue();
 
-        $this->expectException(\Assert\InvalidArgumentException::class);
+        $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessage(\sprintf('Value "%s" is not numeric.', $threshold));
 
         new GreaterThan($threshold);

@@ -3,9 +3,12 @@ declare(strict_types=1);
 
 namespace Donatorsky\XmlTemplate\Reader\Tests\Feature\XmlTemplateReader;
 
+use Assert\InvalidArgumentException;
+use Donatorsky\XmlTemplate\Reader\Exceptions\UnknownRuleException;
 use Donatorsky\XmlTemplate\Reader\Models\Contracts\NodeInterface;
 use Donatorsky\XmlTemplate\Reader\Models\Node;
 use Donatorsky\XmlTemplate\Reader\XmlTemplateReader;
+use Exception;
 use Symfony\Component\EventDispatcher\EventDispatcher;
 
 /**
@@ -18,7 +21,7 @@ class BasicTemplateReaderTest extends AbstractXmlTemplateReaderTest
 
     public function testFailToConstructWithInvalidXmlTemplateSyntax(): void
     {
-        $this->expectException(\Exception::class);
+        $this->expectException(Exception::class);
         $this->expectExceptionMessage('String could not be parsed as XML');
 
         (new XmlTemplateReader('<wrong-xml'))->preloadTemplate();
@@ -26,7 +29,7 @@ class BasicTemplateReaderTest extends AbstractXmlTemplateReaderTest
 
     public function testFailToConstructWithNoXmlTemplateNamespace(): void
     {
-        $this->expectException(\Assert\InvalidArgumentException::class);
+        $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessage('You need to specify exactly one template namespace, 0 provided');
 
         (new XmlTemplateReader(<<<'XML'
@@ -41,7 +44,7 @@ XML
 
     public function testFailToConstructWithMoreThanOneXmlTemplateNamespace(): void
     {
-        $this->expectException(\Assert\InvalidArgumentException::class);
+        $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessage('You need to specify exactly one template namespace, 2 provided');
 
         (new XmlTemplateReader(<<<'XML'
@@ -60,7 +63,7 @@ XML
 
     public function testFailToConstructWithOneXmlTemplateNamespaceWithoutSchemaLocation(): void
     {
-        $this->expectException(\Assert\InvalidArgumentException::class);
+        $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessage('You need to specify exactly one template namespace, 0 provided');
 
         (new XmlTemplateReader(<<<'XML'
@@ -75,7 +78,7 @@ XML
 
     public function testFailToConstructFromXmlTemplateWithUnknownRule(): void
     {
-        $this->expectException(\Donatorsky\XmlTemplate\Reader\Exceptions\UnknownRuleException::class);
+        $this->expectException(UnknownRuleException::class);
         $this->expectExceptionMessage('The rule "nonExistentRule" is unknown');
 
         (new XmlTemplateReader(<<<'XML'
@@ -130,7 +133,7 @@ XML
 
         self::assertTrue($xmlTemplateReader->isOpened());
 
-        $this->expectException(\Assert\InvalidArgumentException::class);
+        $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessage('Reading is already in progress');
 
         $xmlTemplateReader->open();

@@ -19,15 +19,15 @@ jobs:
       matrix:
         operating-system:
           - 'ubuntu-latest'
-#          - 'windows-latest'
-#          - 'macos-latest'
+          - 'windows-latest'
+          - 'macos-latest'
 
         php-version:
           - '7.4'
           - '8.0'
 
         dependencies:
-#          - 'lowest'
+          - 'lowest'
           - 'highest'
 
     runs-on: ${{ matrix.operating-system }}

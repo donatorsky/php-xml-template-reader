@@ -5,6 +5,7 @@ namespace Donatorsky\XmlTemplate\Reader\Tests\Unit\Models;
 
 use Donatorsky\XmlTemplate\Reader\Models\Map;
 use Donatorsky\XmlTemplate\Reader\Tests\Extensions\WithFaker;
+use OutOfBoundsException;
 use PHPUnit\Framework\TestCase;
 use stdClass;
 
@@ -52,7 +53,7 @@ class MapTest extends TestCase
 
         self::assertFalse($map->has($name));
 
-        $this->expectException(\OutOfBoundsException::class);
+        $this->expectException(OutOfBoundsException::class);
         $this->expectExceptionMessage(\sprintf('The element with name "%s" does not exist', $name));
 
         $map->get($name);

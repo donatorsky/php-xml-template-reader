@@ -19,6 +19,7 @@ use RuntimeException;
 use SimpleXMLElement;
 use Symfony\Component\EventDispatcher\EventDispatcher;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
+use Throwable;
 
 class XmlTemplateReader
 {
@@ -211,7 +212,7 @@ class XmlTemplateReader
             $result = \xml_parse($this->xmlParser, $xml);
 
             //TODO: Do something with invalid result
-        } catch (\Throwable $exception) {
+        } catch (Throwable $exception) {
         } finally {
             if (null !== $exception) {
                 $this->deinitializeParser();

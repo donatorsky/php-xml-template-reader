@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace Donatorsky\XmlTemplate\Reader\Tests\Feature\XmlTemplateReader;
 
+use Donatorsky\XmlTemplate\Reader\Exceptions\UnexpectedMultipleNodeReadException;
 use Donatorsky\XmlTemplate\Reader\XmlTemplateReader;
 
 /**
@@ -20,7 +21,7 @@ class SingleAndCollectionNodesTest extends AbstractXmlTemplateReaderTest
 
     public function testSingleNodeAsCollection(): void
     {
-        $this->expectException(\Donatorsky\XmlTemplate\Reader\Exceptions\UnexpectedMultipleNodeReadException::class);
+        $this->expectException(UnexpectedMultipleNodeReadException::class);
         $this->expectExceptionMessage('The node "root/singleNode" is expected to be a single node, but another was read');
 
         $this->xmlTemplateReader->read(<<<'XML'
