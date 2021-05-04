@@ -343,7 +343,7 @@ class XmlTemplateReader
     private function onTagOpenRead($xmlParser, string $nodeName, array $attributes): void
     {
         if ($this->inCData) {
-            $this->onCDATARead($xmlParser, $this->cData);
+            $this->dispatchCDataReadEvent();
 
             $this->inCData = false;
             $this->cData = '';
@@ -372,11 +372,15 @@ class XmlTemplateReader
     private function onCDataRead($xmlParser, string $contents): void
     {
         $this->inCData = true;
+        $this->cData .= $contents;
+    }
 
+    private function dispatchCDataReadEvent(): void
+    {
         $this->eventDispatcher->dispatch(
             new CDataRead(
                 \end($this->pathForObject),
-                $contents,
+                $this->cData,
             ),
             \sprintf('cdata@%s', \implode('/', $this->path)),
         );
@@ -388,7 +392,7 @@ class XmlTemplateReader
     private function onTagCloseRead($xmlParser, string $nodeName): void
     {
         if ($this->inCData) {
-            $this->onCDATARead($xmlParser, $this->cData);
+            $this->dispatchCDataReadEvent();
 
             $this->inCData = false;
             $this->cData = '';
