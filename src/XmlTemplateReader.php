@@ -44,6 +44,8 @@ class XmlTemplateReader
 
     private string $namespace;
 
+    private ?string $template = null;
+
     private EventDispatcherInterface $eventDispatcher;
 
     /**
@@ -92,21 +94,30 @@ class XmlTemplateReader
 
     private string $cData = '';
 
-    public function __construct(?EventDispatcherInterface $eventDispatcher = null)
-    {
+    public function __construct(
+        #[Language('XML')]
+        string $template,
+        ?EventDispatcherInterface $eventDispatcher = null
+    ) {
+        $this->template = $template;
         $this->eventDispatcher = $eventDispatcher ?? new EventDispatcher();
     }
 
     /**
-     * @throws \Assert\AssertionFailedException When template namespace configuration is incorrect
-     * @throws \Exception                       If the XML data could not be parsed. See {@see \SimpleXMLElement::__construct} for more details.
+     * @throws \Assert\AssertionFailedException                               When template namespace configuration is incorrect
+     * @throws \Donatorsky\XmlTemplate\Reader\Exceptions\UnknownRuleException When template contains {@see registerRuleFilter unregistered} custom rules
+     * @throws \Exception                                                     If the XML data could not be parsed. See {@see \SimpleXMLElement::__construct} for more details.
      */
-    public function loadTemplate(
-        #[Language('XML')]
-        string $template
-    ): self {
+    public function preloadTemplate(): self
+    {
+        // Check if template is already loaded
+        if (null === $this->template) {
+            return $this;
+        }
+
+        // If not, then parse it
         $simpleXMLElement = new SimpleXMLElement(
-            $template,
+            $this->template,
             LIBXML_NOERROR | LIBXML_NOWARNING | LIBXML_NONET,
         );
 
@@ -118,18 +129,26 @@ class XmlTemplateReader
 
         $this->addListenersFromTemplate($simpleXMLElement);
 
+        $this->template = null;
+
         return $this;
     }
 
+    public function isPreloaded(): bool
+    {
+        return null === $this->template;
+    }
+
+    /**
+     * Returns the template namespace.
+     * Should not be called before a template is loaded.
+     */
     public function getNamespace(): string
     {
         return $this->namespace;
     }
 
-    /**
-     * @return \Symfony\Component\EventDispatcher\EventDispatcher|\Symfony\Component\EventDispatcher\EventDispatcherInterface
-     */
-    public function getEventDispatcher()
+    public function getEventDispatcher(): EventDispatcherInterface
     {
         return $this->eventDispatcher;
     }
@@ -164,6 +183,7 @@ class XmlTemplateReader
         Assertion::false($this->isOpened(), 'Reading is already in progress');
 
         $this->initializeParser();
+        $this->preloadTemplate();
 
         $this->pathForObject = [new Node('')];
 
@@ -228,7 +248,7 @@ class XmlTemplateReader
     }
 
     /**
-     * @throws \Assert\AssertionFailedException
+     * @throws \Throwable When there was an error during parsing
      */
     public function read(
         #[Language('XML')]
@@ -244,6 +264,7 @@ class XmlTemplateReader
     /**
      * @throws \Assert\AssertionFailedException When file could not be opened
      * @throws \Assert\AssertionFailedException When $chunkSize parameter is less than 1
+     * @throws \Throwable                       When there was an error during parsing
      */
     public function readFile(
         string $path,
@@ -262,7 +283,8 @@ class XmlTemplateReader
     /**
      * @param resource $stream
      *
-     * @throws \Assert\AssertionFailedException
+     * @throws \Assert\AssertionFailedException When $chunkSize parameter is less than 1
+     * @throws \Throwable                       When there was an error during parsing
      */
     public function readStream(
         $stream,

@@ -21,7 +21,7 @@ class BasicTemplateReaderTest extends AbstractXmlTemplateReaderTest
         $this->expectException(\Exception::class);
         $this->expectExceptionMessage('String could not be parsed as XML');
 
-        (new XmlTemplateReader())->loadTemplate('<wrong-xml');
+        (new XmlTemplateReader('<wrong-xml'))->preloadTemplate();
     }
 
     public function testFailToConstructWithNoXmlTemplateNamespace(): void
@@ -29,14 +29,14 @@ class BasicTemplateReaderTest extends AbstractXmlTemplateReaderTest
         $this->expectException(\Assert\InvalidArgumentException::class);
         $this->expectExceptionMessage('You need to specify exactly one template namespace, 0 provided');
 
-        (new XmlTemplateReader())->loadTemplate(<<<'XML'
+        (new XmlTemplateReader(<<<'XML'
 <?xml version="1.0" encoding="UTF-8" ?>
 <template>
     <root>
     </root>
 </template>
 XML
-        );
+        ))->preloadTemplate();
     }
 
     public function testFailToConstructWithMoreThanOneXmlTemplateNamespace(): void
@@ -44,7 +44,7 @@ XML
         $this->expectException(\Assert\InvalidArgumentException::class);
         $this->expectExceptionMessage('You need to specify exactly one template namespace, 2 provided');
 
-        (new XmlTemplateReader())->loadTemplate(<<<'XML'
+        (new XmlTemplateReader(<<<'XML'
 <?xml version="1.0" encoding="UTF-8" ?>
 <template xmlns:tpl="http://www.w3.org/2001/XMLSchema-instance"
           tpl:noNamespaceSchemaLocation="../../../src/xml-template-reader.xsd"
@@ -55,7 +55,7 @@ XML
     </root>
 </template>
 XML
-        );
+        ))->preloadTemplate();
     }
 
     public function testFailToConstructWithOneXmlTemplateNamespaceWithoutSchemaLocation(): void
@@ -63,14 +63,14 @@ XML
         $this->expectException(\Assert\InvalidArgumentException::class);
         $this->expectExceptionMessage('You need to specify exactly one template namespace, 0 provided');
 
-        (new XmlTemplateReader())->loadTemplate(<<<'XML'
+        (new XmlTemplateReader(<<<'XML'
 <?xml version="1.0" encoding="UTF-8" ?>
 <template xmlns:tpl="http://www.w3.org/2001/XMLSchema-instance">
     <root tpl:attribute="">
     </root>
 </template>
 XML
-        );
+        ))->preloadTemplate();
     }
 
     public function testFailToConstructFromXmlTemplateWithUnknownRule(): void
@@ -78,7 +78,7 @@ XML
         $this->expectException(\Donatorsky\XmlTemplate\Reader\Exceptions\UnknownRuleException::class);
         $this->expectExceptionMessage('The rule "nonExistentRule" is unknown');
 
-        (new XmlTemplateReader())->loadTemplate(<<<'XML'
+        (new XmlTemplateReader(<<<'XML'
 <?xml version="1.0" encoding="UTF-8" ?>
 <template xmlns:tpl="http://www.w3.org/2001/XMLSchema-instance"
           tpl:noNamespaceSchemaLocation="../../../src/xml-template-reader.xsd">
@@ -86,27 +86,33 @@ XML
     </root>
 </template>
 XML
-        );
+        ))->preloadTemplate();
     }
 
     public function testCanBeConstructedWithCustomDispatcher(): void
     {
         $eventDispatcher = new EventDispatcher();
 
-        $xmlTemplateReader = new XmlTemplateReader($eventDispatcher);
+        $xmlTemplateReader = new XmlTemplateReader(self::getTemplateXml(self::XML_CORRECT), $eventDispatcher);
 
-        $xmlTemplateReader->loadTemplate(self::getTemplateXml(self::XML_CORRECT));
+        self::assertFalse($xmlTemplateReader->isPreloaded());
 
+        $xmlTemplateReader->preloadTemplate();
+
+        self::assertTrue($xmlTemplateReader->isPreloaded());
         self::assertSame('tpl', $xmlTemplateReader->getNamespace());
         self::assertSame($eventDispatcher, $xmlTemplateReader->getEventDispatcher());
     }
 
     public function testCanBeConstructedWithDefaultDispatcher(): XmlTemplateReader
     {
-        $xmlTemplateReader = new XmlTemplateReader();
+        $xmlTemplateReader = new XmlTemplateReader(self::getTemplateXml(self::XML_CORRECT));
 
-        $xmlTemplateReader->loadTemplate(self::getTemplateXml(self::XML_CORRECT));
+        self::assertFalse($xmlTemplateReader->isPreloaded());
 
+        $xmlTemplateReader->preloadTemplate();
+
+        self::assertTrue($xmlTemplateReader->isPreloaded());
         self::assertSame('tpl', $xmlTemplateReader->getNamespace());
         self::assertInstanceOf(EventDispatcher::class, $xmlTemplateReader->getEventDispatcher());
 

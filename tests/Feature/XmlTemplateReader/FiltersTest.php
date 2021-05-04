@@ -18,7 +18,7 @@ class FiltersTest extends AbstractXmlTemplateReaderTest
 
     protected function setUp(): void
     {
-        $this->xmlTemplateReader = (new XmlTemplateReader())->loadTemplate(self::getTemplateXml('filters'));
+        $this->xmlTemplateReader = new XmlTemplateReader(self::getTemplateXml('filters'));
     }
 
     public function testIntegerNumberRuleFailsBeforeGreaterThanRule(): void

@@ -22,7 +22,7 @@ XML;
 
     protected function setUp(): void
     {
-        $this->xmlTemplateReader = new XmlTemplateReader();
+        $this->xmlTemplateReader = new XmlTemplateReader(self::getTemplateXml('filters-custom'));
     }
 
     public function testCustomRuleWasNotRegistered(): void
@@ -30,7 +30,7 @@ XML;
         $this->expectException(UnknownRuleException::class);
         $this->expectExceptionMessage('The rule "myRule" is unknown');
 
-        $this->xmlTemplateReader->loadTemplate(self::getTemplateXml('filters-custom'));
+        $this->xmlTemplateReader->preloadTemplate();
     }
 
     /**
@@ -39,7 +39,7 @@ XML;
     public function testCustomFilterPass(): void
     {
         $node = $this->xmlTemplateReader->registerRuleFilter('myRule', MyRule::class, ['myRuleAlias'])
-            ->loadTemplate(self::getTemplateXml('filters-custom'))
+            ->preloadTemplate()
             ->read(self::XML_DATA);
 
         $attributesMap = $node->getAttributes();

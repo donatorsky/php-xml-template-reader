@@ -15,7 +15,7 @@ class SingleAndCollectionNodesTest extends AbstractXmlTemplateReaderTest
 
     protected function setUp(): void
     {
-        $this->xmlTemplateReader = (new XmlTemplateReader())->loadTemplate(self::getTemplateXml('single-and-collection-nodes'));
+        $this->xmlTemplateReader = new XmlTemplateReader(self::getTemplateXml('single-and-collection-nodes'));
     }
 
     public function testSingleNodeAsCollection(): void

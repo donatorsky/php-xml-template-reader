@@ -18,7 +18,7 @@ class CallbackFilterTest extends AbstractXmlTemplateReaderTest
 
     protected function setUp(): void
     {
-        $this->xmlTemplateReader = (new XmlTemplateReader())->loadTemplate(self::getTemplateXml('filters-callback'));
+        $this->xmlTemplateReader = new XmlTemplateReader(self::getTemplateXml('filters-callback'));
     }
 
     public function testCallbackFailsValidation(): void
