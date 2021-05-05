@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<root>
+    <none>
+        Contents of: none
+    </none>
+    <raw>
+        Contents of: raw
+    </raw>
+    <trimmed>
+        Contents of: trimmed
+    </trimmed>
+    <noneWithCData><![CDATA[
+ Contents "of" & <none>
+    ]]></noneWithCData>
+    <rawWithCData><![CDATA[
+ Contents "of" & <raw>
+        ]]></rawWithCData>
+    <trimmedWithCData><![CDATA[
+ Contents "of" & <trimmed>
+        ]]></trimmedWithCData>
+</root>

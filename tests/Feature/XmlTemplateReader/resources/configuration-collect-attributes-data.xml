@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<root>
+    <all validatedAttribute="value 1"
+         otherAttribute="other 1" />
+    <validated validatedAttribute="value 2"
+               otherAttribute="other 2" />
+</root>

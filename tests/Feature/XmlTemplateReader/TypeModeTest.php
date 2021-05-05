@@ -10,13 +10,13 @@ use Donatorsky\XmlTemplate\Reader\XmlTemplateReader;
  * @covers \Donatorsky\XmlTemplate\Reader\XmlTemplateReader
  * @coversDefaultClass \Donatorsky\XmlTemplate\Reader\XmlTemplateReader
  */
-class SingleAndCollectionNodesTest extends AbstractXmlTemplateReaderTest
+class TypeModeTest extends AbstractXmlTemplateReaderTest
 {
     private XmlTemplateReader $xmlTemplateReader;
 
     protected function setUp(): void
     {
-        $this->xmlTemplateReader = new XmlTemplateReader(self::getTemplateXml('single-and-collection-nodes'));
+        $this->xmlTemplateReader = new XmlTemplateReader(self::getTemplateXml('configuration-type'));
     }
 
     public function testSingleNodeAsCollection(): void
