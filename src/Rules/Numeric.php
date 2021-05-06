@@ -19,6 +19,6 @@ class Numeric implements RuleInterface
      */
     public function process($value)
     {
-        return $value + 0;
+        return +$value;
     }
 }
