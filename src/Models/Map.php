@@ -123,7 +123,7 @@ class Map implements ArrayAccess, IteratorAggregate, Countable
     }
 
     /**
-     * @return \ArrayIterator<string,TValue>
+     * @return ArrayIterator<string,TValue>
      */
     public function getIterator(): ArrayIterator
     {

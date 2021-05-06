@@ -76,7 +76,7 @@ class Node implements NodeInterface
     }
 
     /**
-     * @return \Donatorsky\XmlTemplate\Reader\Models\Map<mixed>
+     * @return Map<mixed>
      */
     public function getAttributes(): Map
     {

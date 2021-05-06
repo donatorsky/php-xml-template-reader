@@ -7,6 +7,8 @@ use RuntimeException;
 
 class XmlParsingFailedException extends RuntimeException implements XmlTemplateReaderException
 {
+    private string $errorString;
+
     private int $currentLineNumber;
 
     private int $currentColumnNumber;
@@ -22,9 +24,15 @@ class XmlParsingFailedException extends RuntimeException implements XmlTemplateR
     ) {
         parent::__construct(sprintf('XML parsing failed: %s', $errorString), $errorCode);
 
+        $this->errorString = $errorString;
         $this->currentLineNumber = $currentLineNumber;
         $this->currentColumnNumber = $currentColumnNumber;
         $this->currentByteIndex = $currentByteIndex;
+    }
+
+    public function getErrorString(): string
+    {
+        return $this->errorString;
     }
 
     public function getCurrentLineNumber(): int

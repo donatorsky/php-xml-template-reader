@@ -91,8 +91,9 @@ return (new PhpCsFixer\Config())
             'single_quoted'  => false,
         ],
 
-        'explicit_indirect_variable' => true,
-        'full_opening_tag'           => true,
+        'explicit_indirect_variable'   => true,
+        'full_opening_tag'             => true,
+        'fully_qualified_strict_types' => true,
 
         'function_declaration' => [
             'closure_function_spacing' => 'one',

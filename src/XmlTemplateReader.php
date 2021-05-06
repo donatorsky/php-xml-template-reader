@@ -251,14 +251,10 @@ class XmlTemplateReader
 
         $this->counter = [];
 
-        /**
-         * @var NodeInterface $wrapperObject
-         */
+        /** @var NodeInterface $wrapperObject */
         $wrapperObject = array_pop($this->pathForObject);
 
-        /**
-         * @var NodeInterface $nodeValueObject
-         */
+        /** @var NodeInterface $nodeValueObject */
         $nodeValueObject = $wrapperObject->getRelations()->first();
 
         return $nodeValueObject->setParent(null);
@@ -291,9 +287,7 @@ class XmlTemplateReader
 
         Assertion::isResource($stream, 'Provided file could not be opened');
 
-        /**
-         * @var resource $stream
-         */
+        /** @var resource $stream */
         return $this->readStream($stream, $chunkSize);
     }
 
@@ -317,9 +311,7 @@ class XmlTemplateReader
 
                 Assertion::string($xml, 'Could not read XML data');
 
-                /**
-                 * @var string $xml
-                 */
+                /** @var string $xml */
                 $this->update($xml);
             }
         } finally {
@@ -450,7 +442,7 @@ class XmlTemplateReader
         foreach ($children as $child) {
             $currentPath[] = $child->getName();
 
-            /** @var \SimpleXMLElement $configurationAttributes */
+            /** @var SimpleXMLElement $configurationAttributes */
             $configurationAttributes = $child->attributes($this->namespace, true);
             $currentPathString = implode('/', $currentPath);
 
@@ -562,9 +554,7 @@ class XmlTemplateReader
                     $parentNodeValueObject = $event->getParentNodeValueObject();
                     $attributes = $event->getAttributes();
 
-                    /**
-                     * @var NodeInterface $currentNodeValueObject
-                     */
+                    /** @var NodeInterface $currentNodeValueObject */
                     $currentNodeValueObject = new $configuration['castTo']($currentNodeName, $parentNodeValueObject);
                     $currentNodeAttributesMap = $currentNodeValueObject->getAttributes();
 
