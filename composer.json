@@ -22,7 +22,8 @@
         "ext-simplexml": "*",
         "ext-xml": "*",
         "beberlei/assert": "^3.3",
-        "symfony/event-dispatcher": "^5.2"
+        "symfony/event-dispatcher": "^5.2",
+        "thecodingmachine/safe": "^1.3"
     },
     "suggest": {
         "symfony/event-dispatcher": "To use Symfony's evend dispatcher"
