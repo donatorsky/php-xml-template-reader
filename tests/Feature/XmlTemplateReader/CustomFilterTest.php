@@ -6,6 +6,7 @@ namespace Donatorsky\XmlTemplate\Reader\Tests\Feature\XmlTemplateReader;
 use Donatorsky\XmlTemplate\Reader\Exceptions\UnknownRuleException;
 use Donatorsky\XmlTemplate\Reader\Rules\Contracts\RuleInterface;
 use Donatorsky\XmlTemplate\Reader\XmlTemplateReader;
+use stdClass;
 
 /**
  * @covers \Donatorsky\XmlTemplate\Reader\XmlTemplateReader
@@ -48,6 +49,39 @@ XML;
         self::assertSame('foo SOME VALUE 1 123', $attributesMap->get('custom'));
         self::assertTrue($attributesMap->has('customAliased'));
         self::assertSame('bar SOME VALUE 2 987', $attributesMap->get('customAliased'));
+    }
+
+    /**
+     * @depends testCustomRuleWasNotRegistered
+     */
+    public function testFailToRegisterCustomRuleWithInvalidName(): void
+    {
+        $this->expectException(\Assert\InvalidArgumentException::class);
+        $this->expectExceptionMessage('The "my rule" name of the rule is invalid.');
+
+        $this->xmlTemplateReader->registerRuleFilter('my rule', MyRule::class);
+    }
+
+    /**
+     * @depends testCustomRuleWasNotRegistered
+     */
+    public function testFailToRegisterCustomRuleWithInvalidAlias(): void
+    {
+        $this->expectException(\Assert\InvalidArgumentException::class);
+        $this->expectExceptionMessage('The "my rule alias" alias name of the rule is invalid.');
+
+        $this->xmlTemplateReader->registerRuleFilter('myRule', MyRule::class, ['my rule alias']);
+    }
+
+    /**
+     * @depends testCustomRuleWasNotRegistered
+     */
+    public function testFailToRegisterCustomRuleWithRuleClassNotImplementingRuleInterface(): void
+    {
+        $this->expectException(\Assert\InvalidArgumentException::class);
+        $this->expectExceptionMessage(\sprintf('Class "stdClass" was expected to be subclass of "%s".', RuleInterface::class));
+
+        $this->xmlTemplateReader->registerRuleFilter('myRule', stdClass::class);
     }
 }
 

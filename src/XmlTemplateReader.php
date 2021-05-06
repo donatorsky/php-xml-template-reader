@@ -159,19 +159,23 @@ class XmlTemplateReader
      * Registers new rule class that can be used for validating and transforming parameter's data.
      * Both name and aliases become case-insensitive.
      *
+     * @param string                                      $name         The name of the rule. It must not be empty and consist of letters, numbers and _ only.
      * @param class-string<Rules\Contracts\RuleInterface> $ruleClassFqn
      * @param string[]                                    $aliases
      *
-     * @throws \Assert\AssertionFailedException
+     * @throws \Assert\AssertionFailedException When $name is invalid
+     * @throws \Assert\AssertionFailedException When $ruleClassFqn does not implement RuleInterface
      */
     public function registerRuleFilter(string $name, string $ruleClassFqn, array $aliases = []): self
     {
-        // TODO: Check if $name matches the pattern
+        Assertion::regex($name, '/^\w+$/', 'The "%1$s" name of the rule is invalid.');
         Assertion::subclassOf($ruleClassFqn, Rules\Contracts\RuleInterface::class);
 
         $aliases[] = $name;
 
         foreach ($aliases as $alias) {
+            Assertion::regex($alias, '/^\w+$/', 'The "%1$s" alias name of the rule is invalid.');
+
             $this->rulesClassmap[\strtolower($alias)] = $ruleClassFqn;
         }
 
@@ -214,6 +218,7 @@ class XmlTemplateReader
             $result = \xml_parse($this->xmlParser, $xml);
 
             if (!$result) {
+                // @codeCoverageIgnoreStart
                 throw new XmlParsingFailedException(
                     $errorCode = \xml_get_error_code($this->xmlParser),
                     \xml_error_string($errorCode) ?? 'Unknown parsing error',
@@ -221,6 +226,7 @@ class XmlTemplateReader
                     \xml_get_current_column_number($this->xmlParser),
                     \xml_get_current_byte_index($this->xmlParser),
                 );
+                // @codeCoverageIgnoreEnd
             }
         } catch (Throwable $exception) {
         } finally {
