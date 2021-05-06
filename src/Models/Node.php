@@ -8,26 +8,26 @@ use JetBrains\PhpStorm\ArrayShape;
 
 class Node implements NodeInterface
 {
-    private string $nodeName;
-
-    private ?NodeInterface $parent;
-
-    private ?string $contents;
+    protected ?string $contents;
 
     /**
      * @var Map<mixed>
      */
-    private Map $attributes;
+    protected Map $attributes;
 
     /**
      * @var Map<NodeInterface>
      */
-    private Map $relations;
+    protected Map $relations;
 
     /**
      * @var Map<Collection<NodeInterface>>
      */
-    private Map $children;
+    protected Map $children;
+
+    private string $nodeName;
+
+    private ?NodeInterface $parent;
 
     /**
      * @param array<string,mixed> $attributes

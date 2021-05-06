@@ -73,6 +73,7 @@ class XmlTemplateReader
      * @var array<string,class-string<\Donatorsky\XmlTemplate\Reader\Rules\Contracts\RuleInterface>>
      */
     private array $rulesClassmap = [
+        'callback'    => Rules\Callback::class,
         'float'       => Rules\FloatNumber::class,
         'greaterthan' => Rules\GreaterThan::class,
         'int'         => Rules\IntegerNumber::class,
@@ -80,7 +81,6 @@ class XmlTemplateReader
         'numeric'     => Rules\Numeric::class,
         'required'    => Rules\Required::class,
         'trim'        => Rules\Trim::class,
-        'callback'    => Rules\Callback::class,
     ];
 
     /**
@@ -445,11 +445,19 @@ class XmlTemplateReader
                 ),
 
                 'attributesRules'   => [],
-                'contents'          => (string) ($configurationAttributes['contents'] ?? self::CONFIGURATION_CONTENTS_NONE),
+                'contents'          => '',
                 'type'              => (string) ($configurationAttributes['type'] ?? self::CONFIGURATION_TYPE_SINGLE),
-                'collectAttributes' => (string) ($configurationAttributes['collectAttributes'] ?? self::CONFIGURATION_COLLECT_ATTRIBUTES_ALL),
+                'collectAttributes' => (string) ($configurationAttributes['collectAttributes'] ?? self::CONFIGURATION_COLLECT_ATTRIBUTES_VALIDATED),
                 'castTo'            => (string) ($configurationAttributes['castTo'] ?? Node::class),
             ];
+
+            if (isset($configurationAttributes['contents'])) {
+                $configuration['contents'] = (string) $configurationAttributes['contents'];
+            } else {
+                $configuration['contents'] = self::CONFIGURATION_TYPE_SINGLE === $configuration['type'] ?
+                    self::CONFIGURATION_CONTENTS_NONE :
+                    self::CONFIGURATION_CONTENTS_RAW;
+            }
 
             Assertion::notNull($configuration['required'], \sprintf(
                 'The "%s" node\'s %s:required attribute value "%s" is invalid, true or false was expected',
