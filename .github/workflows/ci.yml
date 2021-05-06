@@ -74,3 +74,53 @@ jobs:
 
       - name: Run Unit tests
         run: composer lint:test:unit
+
+  coveralls:
+
+    needs: build
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - operating-system: 'ubuntu-latest'
+            php-version: '8.0'
+            dependencies: 'highest'
+
+    runs-on: ${{ matrix.operating-system }}
+    name: 'Code Coverage report: PHP ${{ matrix.php-version }} on ${{ matrix.operating-system }} with ${{ matrix.dependencies }} dependencies'
+
+    steps:
+      - name: Checkout project files
+        uses: actions/checkout@v2
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php-version }}
+          coverage: pcov
+          tools: composer:v2
+
+      - name: Validate composer.json
+        run: composer validate
+
+      - name: Cache Composer packages
+        id: composer-cache
+        uses: actions/cache@v2.1.5
+        with:
+          path: vendor
+          key: php-${{ env.PHP_VERSION }}-dependencies-${{ matrix.dependencies }}-${{ hashFiles('**/composer.json') }}
+
+      - name: Install dependencies
+        if: steps.composer-cache.outputs.cache-hit != 'true'
+        run: composer update --no-interaction --no-ansi --no-progress --no-scripts --optimize-autoloader --classmap-authoritative
+
+      - name: Generate code coverage
+        run: vendor/bin/phpunit --coverage-clover build/coveralls/clover.xml
+
+      - name: Upload coverage results to Coveralls
+        env:
+          COVERALLS_REPO_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          composer global require --no-interaction php-coveralls/php-coveralls
+          php-coveralls --coverage_clover=build/coveralls/clover.xml --json_path=build/coveralls/coveralls-upload.json --verbose
