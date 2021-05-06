@@ -13,5 +13,4 @@
 /.phpunit.result.cache
 
 # Infection
-/build/infection/
 /infection.json
