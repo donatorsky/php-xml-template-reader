@@ -18,7 +18,7 @@ class UnknownRuleException extends RuntimeException implements XmlTemplateReader
      */
     public function __construct($ruleName, ?Throwable $previous = null)
     {
-        parent::__construct(\sprintf('The rule "%s" is unknown', $ruleName), 0, $previous);
+        parent::__construct(sprintf('The rule "%s" is unknown', $ruleName), 0, $previous);
 
         $this->ruleName = $ruleName;
     }

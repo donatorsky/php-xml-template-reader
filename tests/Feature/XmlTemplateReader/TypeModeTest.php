@@ -24,7 +24,8 @@ class TypeModeTest extends AbstractXmlTemplateReaderTest
         $this->expectException(UnexpectedMultipleNodeReadException::class);
         $this->expectExceptionMessage('The node "root/singleNode" is expected to be a single node, but another was read');
 
-        $this->xmlTemplateReader->read(<<<'XML'
+        $this->xmlTemplateReader->read(
+            <<<'XML'
 <root>
     <singleNode>1</singleNode>
     <singleNode>2</singleNode>
@@ -36,7 +37,8 @@ XML
 
     public function testFiltersPass(): void
     {
-        $node = $this->xmlTemplateReader->read(<<<'XML'
+        $node = $this->xmlTemplateReader->read(
+            <<<'XML'
 <root>
     <singleNode>1</singleNode>
     <multipleNode>2</multipleNode>

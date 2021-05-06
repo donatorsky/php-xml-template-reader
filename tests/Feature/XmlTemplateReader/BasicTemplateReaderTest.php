@@ -32,7 +32,8 @@ class BasicTemplateReaderTest extends AbstractXmlTemplateReaderTest
         $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessage('You need to specify exactly one template namespace, 0 provided');
 
-        (new XmlTemplateReader(<<<'XML'
+        (new XmlTemplateReader(
+            <<<'XML'
 <?xml version="1.0" encoding="UTF-8" ?>
 <template>
     <root>
@@ -47,7 +48,8 @@ XML
         $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessage('You need to specify exactly one template namespace, 2 provided');
 
-        (new XmlTemplateReader(<<<'XML'
+        (new XmlTemplateReader(
+            <<<'XML'
 <?xml version="1.0" encoding="UTF-8" ?>
 <template xmlns:tpl="http://www.w3.org/2001/XMLSchema-instance"
           tpl:noNamespaceSchemaLocation="../../../src/xml-template-reader.xsd"
@@ -66,7 +68,8 @@ XML
         $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessage('You need to specify exactly one template namespace, 0 provided');
 
-        (new XmlTemplateReader(<<<'XML'
+        (new XmlTemplateReader(
+            <<<'XML'
 <?xml version="1.0" encoding="UTF-8" ?>
 <template xmlns:tpl="http://www.w3.org/2001/XMLSchema-instance">
     <root tpl:attribute="">
@@ -81,7 +84,8 @@ XML
         $this->expectException(UnknownRuleException::class);
         $this->expectExceptionMessage('The rule "nonExistentRule" is unknown');
 
-        (new XmlTemplateReader(<<<'XML'
+        (new XmlTemplateReader(
+            <<<'XML'
 <?xml version="1.0" encoding="UTF-8" ?>
 <template xmlns:tpl="http://www.w3.org/2001/XMLSchema-instance"
           tpl:noNamespaceSchemaLocation="../../../src/xml-template-reader.xsd">
@@ -168,7 +172,7 @@ XML
      */
     public function testXmlCanBeParsedFromResource(XmlTemplateReader $xmlTemplateReader): NodeInterface
     {
-        $nodeValueObject = $xmlTemplateReader->readStream(\fopen(self::getXmlPath(self::XML_CORRECT, 'data'), 'r'));
+        $nodeValueObject = $xmlTemplateReader->readStream(fopen(self::getXmlPath(self::XML_CORRECT, 'data'), 'r'));
 
         self::assertNodeObjectIsComplete($nodeValueObject);
 
@@ -177,8 +181,8 @@ XML
 
     public function chunkSizeDataProvider(): iterable
     {
-        for ($chunkSize = 2, $maxChunkSize = \ceil(\sqrt(\filesize(self::getXmlPath(self::XML_CORRECT, 'data')))); $chunkSize <= $maxChunkSize; ++$chunkSize) {
-            yield \sprintf('Chunk size = %d', $chunkSize) => [$chunkSize];
+        for ($chunkSize = 2, $maxChunkSize = ceil(sqrt(filesize(self::getXmlPath(self::XML_CORRECT, 'data')))); $chunkSize <= $maxChunkSize; ++$chunkSize) {
+            yield sprintf('Chunk size = %d', $chunkSize) => [$chunkSize];
         }
     }
 
@@ -489,7 +493,7 @@ XML
     {
         $xmlTemplateReader->open();
 
-        $stream = \str_split(self::getDataXml(self::XML_CORRECT), $chunkSize);
+        $stream = str_split(self::getDataXml(self::XML_CORRECT), $chunkSize);
 
         foreach ($stream as $packet) {
             $xmlTemplateReader->update($packet);

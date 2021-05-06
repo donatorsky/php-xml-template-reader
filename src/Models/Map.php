@@ -45,7 +45,7 @@ class Map implements ArrayAccess, IteratorAggregate, Countable
     public function get(string $name)
     {
         if (!isset($this->data[$name])) {
-            throw new OutOfBoundsException(\sprintf('The element with name "%s" does not exist', $name));
+            throw new OutOfBoundsException(sprintf('The element with name "%s" does not exist', $name));
         }
 
         return $this->data[$name];
@@ -56,7 +56,7 @@ class Map implements ArrayAccess, IteratorAggregate, Countable
      */
     public function first()
     {
-        return \reset($this->data) ?: null;
+        return reset($this->data) ?: null;
     }
 
     /**

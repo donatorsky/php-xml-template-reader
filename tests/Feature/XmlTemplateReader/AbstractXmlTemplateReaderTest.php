@@ -13,16 +13,16 @@ abstract class AbstractXmlTemplateReaderTest extends TestCase
         #[ExpectedValues(values: ['data', 'template'])]
         string $type
     ): string {
-        return \sprintf('%1$s%2$sresources%2$s%3$s-%4$s.xml', __DIR__, DIRECTORY_SEPARATOR, $name, $type);
+        return sprintf('%1$s%2$sresources%2$s%3$s-%4$s.xml', __DIR__, DIRECTORY_SEPARATOR, $name, $type);
     }
 
     protected static function getDataXml(string $name): string
     {
-        return \file_get_contents(self::getXmlPath($name, 'data'));
+        return file_get_contents(self::getXmlPath($name, 'data'));
     }
 
     protected static function getTemplateXml(string $name): string
     {
-        return \file_get_contents(self::getXmlPath($name, 'template'));
+        return file_get_contents(self::getXmlPath($name, 'template'));
     }
 }

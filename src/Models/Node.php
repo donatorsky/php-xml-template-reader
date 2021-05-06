@@ -55,13 +55,13 @@ class Node implements NodeInterface
             'contents'   => $this->contents,
             'attributes' => $this->attributes->toArray(),
 
-            'relations'                                  => \array_map(
+            'relations'                                  => array_map(
                 static fn (self $nodeValueObject): array => $nodeValueObject->toArray(),
                 $this->relations->toArray(),
             ),
 
-            'children'                                          => \array_map(
-                static fn (Collection $nodeValueObjects): array => \array_map(
+            'children'                                          => array_map(
+                static fn (Collection $nodeValueObjects): array => array_map(
                     static fn (self $nodeValueObject): array    => $nodeValueObject->toArray(),
                     $nodeValueObjects->toArray(),
                 ),

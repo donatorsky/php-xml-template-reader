@@ -23,7 +23,7 @@ class GreaterThanTest extends TestCase
         $threshold = $this->fakeNonNumericValue();
 
         $this->expectException(InvalidArgumentException::class);
-        $this->expectExceptionMessage(\sprintf('Value "%s" is not numeric.', $threshold));
+        $this->expectExceptionMessage(sprintf('Value "%s" is not numeric.', $threshold));
 
         new GreaterThan($threshold);
     }

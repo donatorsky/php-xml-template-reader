@@ -79,7 +79,7 @@ XML;
     public function testFailToRegisterCustomRuleWithRuleClassNotImplementingRuleInterface(): void
     {
         $this->expectException(\Assert\InvalidArgumentException::class);
-        $this->expectExceptionMessage(\sprintf('Class "stdClass" was expected to be subclass of "%s".', RuleInterface::class));
+        $this->expectExceptionMessage(sprintf('Class "stdClass" was expected to be subclass of "%s".', RuleInterface::class));
 
         $this->xmlTemplateReader->registerRuleFilter('myRule', stdClass::class);
     }
@@ -105,6 +105,6 @@ class MyRule implements RuleInterface
 
     public function process($value)
     {
-        return \sprintf('%s %s %s', $this->arg1, \strtoupper($value), $this->arg2);
+        return sprintf('%s %s %s', $this->arg1, strtoupper($value), $this->arg2);
     }
 }

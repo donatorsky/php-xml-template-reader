@@ -37,7 +37,7 @@ class RuleValidationFailedException extends RuntimeException implements XmlTempl
         RuleInterface $rule,
         ?Throwable $previous = null
     ) {
-        parent::__construct(\sprintf(
+        parent::__construct(sprintf(
             'Value "%s" of attribute "%s" in node "%s" does not pass %s rule',
             $attributeValue,
             $attributeName,

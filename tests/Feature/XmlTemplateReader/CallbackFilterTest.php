@@ -24,9 +24,10 @@ class CallbackFilterTest extends AbstractXmlTemplateReaderTest
     public function testCallbackFailsValidation(): void
     {
         $this->expectException(RuleValidationFailedException::class);
-        $this->expectExceptionMessage(\sprintf('Value "incorrect value" of attribute "callback" in node "root" does not pass %s rule', Callback::class));
+        $this->expectExceptionMessage(sprintf('Value "incorrect value" of attribute "callback" in node "root" does not pass %s rule', Callback::class));
 
-        $this->xmlTemplateReader->read(<<<'XML'
+        $this->xmlTemplateReader->read(
+            <<<'XML'
 <root callback=" incorrect value ">
 </root>
 XML
@@ -35,7 +36,8 @@ XML
 
     public function testFiltersPass(): void
     {
-        $node = $this->xmlTemplateReader->read(<<<'XML'
+        $node = $this->xmlTemplateReader->read(
+            <<<'XML'
 <root callback=" correct value ">
 </root>
 XML
@@ -59,6 +61,6 @@ class MyNode extends Node
 
     public function myProcess(string $value, string $parameter1, string $parameter2): string
     {
-        return \sprintf('%s %s %s', $parameter1, \strtoupper($value), $parameter2);
+        return sprintf('%s %s %s', $parameter1, strtoupper($value), $parameter2);
     }
 }

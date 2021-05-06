@@ -14,6 +14,6 @@ class Trim implements RuleInterface
 
     public function process($value): string
     {
-        return \trim((string) $value);
+        return trim((string) $value);
     }
 }

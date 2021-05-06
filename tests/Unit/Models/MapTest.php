@@ -54,7 +54,7 @@ class MapTest extends TestCase
         self::assertFalse($map->has($name));
 
         $this->expectException(OutOfBoundsException::class);
-        $this->expectExceptionMessage(\sprintf('The element with name "%s" does not exist', $name));
+        $this->expectExceptionMessage(sprintf('The element with name "%s" does not exist', $name));
 
         $map->get($name);
     }
@@ -96,7 +96,7 @@ class MapTest extends TestCase
         self::assertSame([
             $name1 => $value1,
             $name2 => $value2,
-        ], \iterator_to_array($map));
+        ], iterator_to_array($map));
 
         self::assertSame($map, $map->remove($name1));
         self::assertFalse($map->isEmpty());

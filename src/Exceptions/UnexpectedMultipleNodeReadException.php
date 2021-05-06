@@ -12,7 +12,7 @@ class UnexpectedMultipleNodeReadException extends RuntimeException implements Xm
 
     public function __construct(string $fullNodePath, ?Throwable $previous = null)
     {
-        parent::__construct(\sprintf(
+        parent::__construct(sprintf(
             'The node "%s" is expected to be a single node, but another was read',
             $fullNodePath,
         ), 0, $previous);

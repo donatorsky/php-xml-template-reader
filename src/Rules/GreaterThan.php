@@ -27,7 +27,7 @@ class GreaterThan implements RuleInterface
 
     public function passes($value): bool
     {
-        return \is_numeric($value) && $value > $this->threshold;
+        return is_numeric($value) && $value > $this->threshold;
     }
 
     /**

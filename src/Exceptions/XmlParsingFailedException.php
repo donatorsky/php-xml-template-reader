@@ -20,7 +20,7 @@ class XmlParsingFailedException extends RuntimeException implements XmlTemplateR
         int $currentColumnNumber,
         int $currentByteIndex
     ) {
-        parent::__construct(\sprintf('XML parsing failed: %s', $errorString), $errorCode);
+        parent::__construct(sprintf('XML parsing failed: %s', $errorString), $errorCode);
 
         $this->currentLineNumber = $currentLineNumber;
         $this->currentColumnNumber = $currentColumnNumber;

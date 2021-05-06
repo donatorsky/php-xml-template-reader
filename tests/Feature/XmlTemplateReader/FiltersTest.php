@@ -24,9 +24,10 @@ class FiltersTest extends AbstractXmlTemplateReaderTest
     public function testIntegerNumberRuleFailsBeforeGreaterThanRule(): void
     {
         $this->expectException(RuleValidationFailedException::class);
-        $this->expectExceptionMessage(\sprintf('Value "non-numeric value" of attribute "greaterThan5" in node "root" does not pass %s rule', IntegerNumber::class));
+        $this->expectExceptionMessage(sprintf('Value "non-numeric value" of attribute "greaterThan5" in node "root" does not pass %s rule', IntegerNumber::class));
 
-        $this->xmlTemplateReader->read(<<<'XML'
+        $this->xmlTemplateReader->read(
+            <<<'XML'
 <root greaterThan5="non-numeric value">
 </root>
 XML
@@ -36,9 +37,10 @@ XML
     public function testGreaterThanRuleFailsAfterValueWasTransformedToInteger(): void
     {
         $this->expectException(RuleValidationFailedException::class);
-        $this->expectExceptionMessage(\sprintf('Value "5" of attribute "greaterThan5" in node "root" does not pass %s rule', GreaterThan::class));
+        $this->expectExceptionMessage(sprintf('Value "5" of attribute "greaterThan5" in node "root" does not pass %s rule', GreaterThan::class));
 
-        $this->xmlTemplateReader->read(<<<'XML'
+        $this->xmlTemplateReader->read(
+            <<<'XML'
 <root greaterThan5=" 5 ">
 </root>
 XML
@@ -47,7 +49,8 @@ XML
 
     public function testFiltersPass(): void
     {
-        $node = $this->xmlTemplateReader->read(<<<'XML'
+        $node = $this->xmlTemplateReader->read(
+            <<<'XML'
 <root greaterThan5="6">
 </root>
 XML
