@@ -74,3 +74,44 @@ jobs:
 
       - name: Run Unit tests
         run: composer lint:test:unit
+
+  coveralls:
+
+    env:
+      OPERATING_SYSTEM: 'ubuntu-latest'
+      PHP_VERSION: '8.0'
+
+    runs-on: ${{ env.OPERATING_SYSTEM }}
+    name: Generating coverage with PHP ${{ env.PHP_VERSION }} on ${{ env.OPERATING_SYSTEM }} with ${{ matrix.dependencies }} dependencies
+
+    steps:
+      - name: Checkout project files
+        uses: actions/checkout@v2
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ env.PHP_VERSION }}
+          coverage: xdebug
+          tools: composer:v2
+
+      - name: Validate composer.json
+        run: composer validate
+
+      - name: Cache Composer packages
+        id: composer-cache
+        uses: actions/cache@v2.1.5
+        with:
+          path: vendor
+          key: php-${{ env.PHP_VERSION }}-dependencies-highest-${{ hashFiles('**/composer.json') }}
+
+      - name: Install dependencies
+        if: steps.composer-cache.outputs.cache-hit != 'true'
+        run: composer update --no-interaction --no-ansi --no-progress --no-scripts --optimize-autoloader --classmap-authoritative
+
+      - name: Upload coverage results to Coveralls
+        env:
+          COVERALLS_REPO_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          composer global require php-coveralls/php-coveralls
+          php-coveralls --coverage_clover=build/logs/clover.xml -v
