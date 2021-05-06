@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema attributeFormDefault="qualified" elementFormDefault="qualified" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+    <xs:annotation>
+        <xs:documentation source="https://github.com/donatorsky/php-xml-template-reader">
+            This Schema file defines the rules by which the XML configuration file of XML Template Reader may be structured.
+        </xs:documentation>
+    </xs:annotation>
+
+    <xs:element name="template" minOccurs="1" maxOccurs="1" />
+</xs:schema>
