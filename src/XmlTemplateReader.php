@@ -10,6 +10,7 @@ use Donatorsky\XmlTemplate\Reader\Events\TagOpened;
 use Donatorsky\XmlTemplate\Reader\Exceptions\RuleValidationFailedException;
 use Donatorsky\XmlTemplate\Reader\Exceptions\UnexpectedMultipleNodeReadException;
 use Donatorsky\XmlTemplate\Reader\Exceptions\UnknownRuleException;
+use Donatorsky\XmlTemplate\Reader\Exceptions\XmlParsingFailedException;
 use Donatorsky\XmlTemplate\Reader\Models\Collection;
 use Donatorsky\XmlTemplate\Reader\Models\Contracts\NodeInterface;
 use Donatorsky\XmlTemplate\Reader\Models\Node;
@@ -60,7 +61,7 @@ class XmlTemplateReader
     private array $pathForHash = [];
 
     /**
-     * @var non-empty-array<\Donatorsky\XmlTemplate\Reader\Models\Contracts\NodeInterface>
+     * @var non-empty-array<NodeInterface>
      */
     private array $pathForObject;
 
@@ -70,7 +71,7 @@ class XmlTemplateReader
     private array $counter = [];
 
     /**
-     * @var array<string,class-string<\Donatorsky\XmlTemplate\Reader\Rules\Contracts\RuleInterface>>
+     * @var array<string,class-string<Rules\Contracts\RuleInterface>>
      */
     private array $rulesClassmap = [
         'callback'    => Rules\Callback::class,
@@ -158,13 +159,14 @@ class XmlTemplateReader
      * Registers new rule class that can be used for validating and transforming parameter's data.
      * Both name and aliases become case-insensitive.
      *
-     * @param class-string<\Donatorsky\XmlTemplate\Reader\Rules\Contracts\RuleInterface> $ruleClassFqn
-     * @param string[]                                                                   $aliases
+     * @param class-string<Rules\Contracts\RuleInterface> $ruleClassFqn
+     * @param string[]                                    $aliases
      *
      * @throws \Assert\AssertionFailedException
      */
     public function registerRuleFilter(string $name, string $ruleClassFqn, array $aliases = []): self
     {
+        // TODO: Check if $name matches the pattern
         Assertion::subclassOf($ruleClassFqn, Rules\Contracts\RuleInterface::class);
 
         $aliases[] = $name;
@@ -211,7 +213,15 @@ class XmlTemplateReader
         try {
             $result = \xml_parse($this->xmlParser, $xml);
 
-            //TODO: Do something with invalid result
+            if (!$result) {
+                throw new XmlParsingFailedException(
+                    $errorCode = \xml_get_error_code($this->xmlParser),
+                    \xml_error_string($errorCode) ?? 'Unknown parsing error',
+                    \xml_get_current_line_number($this->xmlParser),
+                    \xml_get_current_column_number($this->xmlParser),
+                    \xml_get_current_byte_index($this->xmlParser),
+                );
+            }
         } catch (Throwable $exception) {
         } finally {
             if (null !== $exception) {
@@ -236,12 +246,12 @@ class XmlTemplateReader
         $this->counter = [];
 
         /**
-         * @var \Donatorsky\XmlTemplate\Reader\Models\Contracts\NodeInterface $wrapperObject
+         * @var NodeInterface $wrapperObject
          */
         $wrapperObject = \array_pop($this->pathForObject);
 
         /**
-         * @var \Donatorsky\XmlTemplate\Reader\Models\Contracts\NodeInterface $nodeValueObject
+         * @var NodeInterface $nodeValueObject
          */
         $nodeValueObject = $wrapperObject->getRelations()->first();
 
@@ -330,6 +340,7 @@ class XmlTemplateReader
     private function deinitializeParser(): void
     {
         if (null !== $this->xmlParser) {
+            \xml_parse($this->xmlParser, '', true);
             \xml_parser_free($this->xmlParser);
 
             $this->xmlParser = null;
@@ -545,7 +556,7 @@ class XmlTemplateReader
                     $attributes = $event->getAttributes();
 
                     /**
-                     * @var \Donatorsky\XmlTemplate\Reader\Models\Contracts\NodeInterface $currentNodeValueObject
+                     * @var NodeInterface $currentNodeValueObject
                      */
                     $currentNodeValueObject = new $configuration['castTo']($currentNodeName, $parentNodeValueObject);
                     $currentNodeAttributesMap = $currentNodeValueObject->getAttributes();
