@@ -77,11 +77,18 @@ jobs:
 
   coveralls:
 
-    env:
-      PHP_VERSION: '8.0'
+    needs: build
 
-    runs-on: 'ubuntu-latest'
-    name: Generating coverage with PHP ${{ env.PHP_VERSION }} on ubuntu-latest with ${{ matrix.dependencies }} dependencies
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - operating-system: 'ubuntu-latest'
+            php-version: '8.0'
+            dependencies: 'highest'
+
+    runs-on: ${{ matrix.operating-system }}
+    name: 'Code Coverage report: PHP ${{ matrix.php-version }} on ${{ matrix.operating-system }} with ${{ matrix.dependencies }} dependencies'
 
     steps:
       - name: Checkout project files
@@ -90,8 +97,8 @@ jobs:
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
-          php-version: ${{ env.PHP_VERSION }}
-          coverage: xdebug
+          php-version: ${{ matrix.php-version }}
+          coverage: pcov
           tools: composer:v2
 
       - name: Validate composer.json
@@ -102,15 +109,18 @@ jobs:
         uses: actions/cache@v2.1.5
         with:
           path: vendor
-          key: php-${{ env.PHP_VERSION }}-dependencies-highest-${{ hashFiles('**/composer.json') }}
+          key: php-${{ env.PHP_VERSION }}-dependencies-${{ matrix.dependencies }}-${{ hashFiles('**/composer.json') }}
 
       - name: Install dependencies
         if: steps.composer-cache.outputs.cache-hit != 'true'
         run: composer update --no-interaction --no-ansi --no-progress --no-scripts --optimize-autoloader --classmap-authoritative
 
+      - name: Generate code coverage
+        run: vendor/bin/phpunit --coverage-clover build/coveralls/clover.xml
+
       - name: Upload coverage results to Coveralls
         env:
           COVERALLS_REPO_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          composer global require php-coveralls/php-coveralls
-          php-coveralls --coverage_clover=build/logs/clover.xml -v
+          composer global require --no-interaction php-coveralls/php-coveralls
+          php-coveralls --coverage_clover=build/coveralls/clover.xml --json_path=build/coveralls/coveralls-upload.json --verbose
