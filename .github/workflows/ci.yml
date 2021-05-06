@@ -78,11 +78,10 @@ jobs:
   coveralls:
 
     env:
-      OPERATING_SYSTEM: 'ubuntu-latest'
       PHP_VERSION: '8.0'
 
-    runs-on: ${{ env.OPERATING_SYSTEM }}
-    name: Generating coverage with PHP ${{ env.PHP_VERSION }} on ${{ env.OPERATING_SYSTEM }} with ${{ matrix.dependencies }} dependencies
+    runs-on: 'ubuntu-latest'
+    name: Generating coverage with PHP ${{ env.PHP_VERSION }} on ubuntu-latest with ${{ matrix.dependencies }} dependencies
 
     steps:
       - name: Checkout project files
