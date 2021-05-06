@@ -1,6 +1,7 @@
 {
     "name": "xml/template",
     "description": "The PHP XML Reader where you show how to read the XML, and it does the rest for you.",
+    "homepage": "https://github.com/donatorsky/php-xml-template-reader",
     "authors": [
         {
             "name": "Maciej Kudas",
@@ -16,10 +17,28 @@
         "xml parsing"
     ],
     "require": {
-        "php": "^7.4|^8.0"
+        "php": "^7.4|^8.0",
+        "ext-libxml": "*",
+        "ext-simplexml": "*",
+        "ext-xml": "*",
+        "beberlei/assert": "^3.3",
+        "symfony/event-dispatcher": "^5.2"
+    },
+    "suggest": {
+        "symfony/event-dispatcher": "To use Symfony's evend dispatcher"
     },
     "require-dev": {
-        "roave/security-advisories": "dev-latest"
+        "fakerphp/faker": "^1.14",
+        "friendsofphp/php-cs-fixer": "^3.0",
+        "jangregor/phpstan-prophecy": "^0.8.1",
+        "jetbrains/phpstorm-attributes": "^1.0",
+        "phpspec/prophecy-phpunit": "^2.0",
+        "phpstan/phpstan": "^0.12.85",
+        "phpstan/phpstan-phpunit": "^0.12.18",
+        "phpunit/phpunit": "^9.5",
+        "roave/security-advisories": "dev-latest",
+        "symfony/stopwatch": "^5.2",
+        "symfony/var-dumper": "^5.2"
     },
     "autoload": {
         "psr-4": {
@@ -30,6 +49,29 @@
         "psr-4": {
             "Donatorsky\\XmlTemplate\\Reader\\Tests\\": "tests"
         }
+    },
+    "scripts": {
+        "lint:cs:check-all": [
+            "php-cs-fixer fix --dry-run --diff --ansi --verbose"
+        ],
+        "lint:cs:fix": [
+            "php-cs-fixer fix --ansi --verbose"
+        ],
+
+        "lint:stan:analyse": [
+            "phpstan analyse -l max src --memory-limit=256M --ansi --verbose",
+            "phpstan analyse -l 6 tests -c phpstan.tests.neon --memory-limit=256M --ansi --verbose"
+        ],
+
+        "lint:test:unit": [
+            "phpunit --colors=auto"
+        ],
+
+        "lint": [
+            "@lint:cs:fix",
+            "@lint:stan:analyse",
+            "@lint:test:unit"
+        ]
     },
     "config": {
         "preferred-install": "dist",

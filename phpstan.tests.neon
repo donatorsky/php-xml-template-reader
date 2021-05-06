@@ -1,0 +1,14 @@
+includes:
+    - ./vendor/phpstan/phpstan-phpunit/extension.neon
+    - ./vendor/jangregor/phpstan-prophecy/extension.neon
+
+parameters:
+    checkMissingIterableValueType: false
+    checkGenericClassInNonGenericObjectType: false
+
+    ignoreErrors:
+        # False positives
+        - '#^Parameter \x232 \$value of method Donatorsky\\XmlTemplate\\Reader\\Models\\Map<Donatorsky\\XmlTemplate\\Reader\\Models\\Collection<Donatorsky\\XmlTemplate\\Reader\\Models\\Contracts\\NodeInterface>>::set\(\) expects Donatorsky\\XmlTemplate\\Reader\\Models\\Collection<Donatorsky\\XmlTemplate\\Reader\\Models\\Contracts\\NodeInterface>, Donatorsky\\XmlTemplate\\Reader\\Models\\Collection<Donatorsky\\XmlTemplate\\Reader\\Models\\Node> given\.$#'
+        -
+            message: '#^Parameter \x232 \$ruleClassFqn of method Donatorsky\\XmlTemplate\\Reader\\XmlTemplateReader::registerRuleFilter\(\) expects class-string<Donatorsky\\XmlTemplate\\Reader\\Rules\\Contracts\\RuleInterface>, string given\.$#'
+            path: tests/Feature/XmlTemplateReader/CustomFilterTest.php

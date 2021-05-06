@@ -1,0 +1,18 @@
+<root xmlns:foo="https://www.foo.org/"
+      xmlns:bar="https://bar.org">
+    <actors>
+        <actor id="1">Lorem Ipsum</actor>
+        <actor id="2">Dolor Sit</actor>
+        <actor id="3">Amet Enim</actor>
+    </actors>
+    <foo:singers>
+        <foo:singer id="4">Etiam Ullamcorper</foo:singer>
+        <foo:singer id="5">Suspendisse a'Pellentesque</foo:singer>
+        <foo:singer id="6a" bar:id="6">Dui von Felis</foo:singer>
+    </foo:singers>
+    <bar.writers>
+        <bar.writer id="7">Maecenas Malesuada</bar.writer>
+        <bar.writer id="8">Elit Lectus</bar.writer>
+        <bar.writer id="9a" bar.id="9">Felis Malesuada</bar.writer>
+    </bar.writers>
+</root>
