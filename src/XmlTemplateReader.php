@@ -21,6 +21,10 @@ use SimpleXMLElement;
 use Symfony\Component\EventDispatcher\EventDispatcher;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Throwable;
+use function Safe\fopen;
+use function Safe\fread;
+use function Safe\xml_parser_create;
+use function Safe\xml_set_object;
 
 class XmlTemplateReader
 {
@@ -292,9 +296,6 @@ class XmlTemplateReader
     ): ?NodeInterface {
         $stream = fopen($path, 'rb');
 
-        Assertion::isResource($stream, 'Provided file could not be opened');
-
-        /** @var resource $stream */
         return $this->readStream($stream, $chunkSize);
     }
 
@@ -314,12 +315,7 @@ class XmlTemplateReader
 
         try {
             while (!feof($stream)) {
-                $xml = fread($stream, $chunkSize);
-
-                Assertion::string($xml, 'Could not read XML data');
-
-                /** @var string $xml */
-                $this->update($xml);
+                $this->update(fread($stream, $chunkSize));
             }
         } finally {
             fclose($stream);
@@ -328,6 +324,9 @@ class XmlTemplateReader
         return $this->close();
     }
 
+    /**
+     * @throws \Safe\Exceptions\XmlException
+     */
     private function initializeParser(): void
     {
         $this->xmlParser = xml_parser_create('UTF-8');
@@ -335,10 +334,13 @@ class XmlTemplateReader
         xml_set_object($this->xmlParser, $this);
         xml_set_element_handler(
             $this->xmlParser,
-            [$this, 'onTagOpenRead'],
-            [$this, 'onTagCloseRead'],
+            fn (...$arguments) => $this->onTagOpenRead(...$arguments),
+            fn (...$arguments) => $this->onTagCloseRead(...$arguments),
         );
-        xml_set_character_data_handler($this->xmlParser, [$this, 'onCDataRead']);
+        xml_set_character_data_handler(
+            $this->xmlParser,
+            fn (...$arguments) => $this->onCDataRead(...$arguments),
+        );
         xml_parser_set_option($this->xmlParser, XML_OPTION_CASE_FOLDING, 0);
         xml_parser_set_option($this->xmlParser, XML_OPTION_SKIP_WHITE, 1);
     }
