@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace Donatorsky\XmlTemplate\Reader\Tests\Feature\XmlTemplateReader;
 
+use Assert\InvalidArgumentException;
 use Donatorsky\XmlTemplate\Reader\Models\Map;
 use Donatorsky\XmlTemplate\Reader\XmlTemplateReader;
 
@@ -12,13 +13,15 @@ use Donatorsky\XmlTemplate\Reader\XmlTemplateReader;
  */
 class CollectAttributesModeTest extends AbstractXmlTemplateReaderTest
 {
-    private const XML = 'configuration-collect-attributes';
+    private const XML_VALID = 'configuration-collect-attributes-valid';
+
+    private const XML_INVALID = 'configuration-collect-attributes-invalid';
 
     public function testRelationsWereRead(): Map
     {
-        $xmlTemplateReader = new XmlTemplateReader(self::getTemplateXml(self::XML));
+        $xmlTemplateReader = new XmlTemplateReader(self::getTemplateXml(self::XML_VALID));
 
-        $node = $xmlTemplateReader->read(self::getDataXml(self::XML));
+        $node = $xmlTemplateReader->read(self::getDataXml(self::XML_VALID));
 
         $relationsMap = $node->getRelations();
         self::assertTrue($relationsMap->has('all'));
@@ -56,5 +59,15 @@ class CollectAttributesModeTest extends AbstractXmlTemplateReaderTest
         self::assertArrayHasKey('validatedAttribute', $attributesMap);
         self::assertSame('value 2', $attributesMap['validatedAttribute']);
         self::assertArrayNotHasKey('otherAttribute', $attributesMap);
+    }
+
+    public function testFailsForInvalidValue(): void
+    {
+        $xmlTemplateReader = new XmlTemplateReader(self::getTemplateXml(self::XML_INVALID));
+
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('The "root/invalid" node\'s tpl:collectAttributes attribute value "invalid value" is invalid, expecting one of: all, validated');
+
+        $xmlTemplateReader->preloadTemplate();
     }
 }

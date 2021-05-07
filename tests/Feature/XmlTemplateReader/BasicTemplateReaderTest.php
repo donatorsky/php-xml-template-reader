@@ -176,7 +176,7 @@ XML
     }
 
     /**
-     * @depends testCanBeConstructedWithDefaultDispatcher
+     * @depends      testCanBeConstructedWithDefaultDispatcher
      * @dataProvider invalidChunkSizeDataProvider
      */
     public function testFailToParseFromResourceWithInvalidChunkSize(int $chunkSize, XmlTemplateReader $xmlTemplateReader): void

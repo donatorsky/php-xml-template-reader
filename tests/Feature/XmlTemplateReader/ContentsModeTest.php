@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace Donatorsky\XmlTemplate\Reader\Tests\Feature\XmlTemplateReader;
 
+use Assert\InvalidArgumentException;
 use Donatorsky\XmlTemplate\Reader\Models\Map;
 use Donatorsky\XmlTemplate\Reader\XmlTemplateReader;
 
@@ -12,13 +13,15 @@ use Donatorsky\XmlTemplate\Reader\XmlTemplateReader;
  */
 class ContentsModeTest extends AbstractXmlTemplateReaderTest
 {
-    private const XML = 'configuration-contents';
+    private const XML_VALID = 'configuration-contents-valid';
+
+    private const XML_INVALID = 'configuration-contents-invalid';
 
     public function testRelationsWereRead(): Map
     {
-        $xmlTemplateReader = new XmlTemplateReader(self::getTemplateXml(self::XML));
+        $xmlTemplateReader = new XmlTemplateReader(self::getTemplateXml(self::XML_VALID));
 
-        $node = $xmlTemplateReader->read(self::getDataXml(self::XML));
+        $node = $xmlTemplateReader->read(self::getDataXml(self::XML_VALID));
 
         $relationsMap = $node->getRelations();
         self::assertTrue($relationsMap->has('none'));
@@ -76,5 +79,15 @@ class ContentsModeTest extends AbstractXmlTemplateReaderTest
 
         self::assertSame('Contents of: trimmed', $trimmedNode->getContents());
         self::assertSame('Contents "of" & <trimmed>', $trimmedWithCDataNode->getContents());
+    }
+
+    public function testFailsForInvalidValue(): void
+    {
+        $xmlTemplateReader = new XmlTemplateReader(self::getTemplateXml(self::XML_INVALID));
+
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('The "root/invalid" node\'s tpl:contents attribute value "invalid value" is invalid, expecting one of: none, raw, trimmed');
+
+        ($xmlTemplateReader)->preloadTemplate();
     }
 }

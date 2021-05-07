@@ -516,11 +516,18 @@ class XmlTemplateReader
                 $this->namespace,
             ));
 
-            Assertion::true(class_exists($configuration['castTo']), sprintf(
+            Assertion::classExists($configuration['castTo'], sprintf(
                 'The "%s" node\'s %s:castTo attribute value "%s" refers to non-existent class FQN',
                 $currentPathString,
                 $this->namespace,
                 $configurationAttributes['castTo'],
+            ));
+            Assertion::subclassOf($configuration['castTo'], NodeInterface::class, sprintf(
+                'The "%s" node\'s %s:castTo attribute value "%s" refers to a class that does not implement "%s" interface',
+                $currentPathString,
+                $this->namespace,
+                $configurationAttributes['castTo'],
+                NodeInterface::class,
             ));
 
             // Attributes rules

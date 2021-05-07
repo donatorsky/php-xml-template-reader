@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace Donatorsky\XmlTemplate\Reader\Tests\Feature\XmlTemplateReader;
 
+use Assert\InvalidArgumentException;
 use Donatorsky\XmlTemplate\Reader\Exceptions\UnexpectedMultipleNodeReadException;
 use Donatorsky\XmlTemplate\Reader\XmlTemplateReader;
 
@@ -12,19 +13,18 @@ use Donatorsky\XmlTemplate\Reader\XmlTemplateReader;
  */
 class TypeModeTest extends AbstractXmlTemplateReaderTest
 {
-    private XmlTemplateReader $xmlTemplateReader;
+    private const XML_VALID = 'configuration-type-valid';
 
-    protected function setUp(): void
-    {
-        $this->xmlTemplateReader = new XmlTemplateReader(self::getTemplateXml('configuration-type'));
-    }
+    private const XML_INVALID = 'configuration-type-invalid';
 
     public function testSingleNodeAsCollection(): void
     {
+        $xmlTemplateReader = new XmlTemplateReader(self::getTemplateXml(self::XML_VALID));
+
         $this->expectException(UnexpectedMultipleNodeReadException::class);
         $this->expectExceptionMessage('The node "root/singleNode" is expected to be a single node, but another was read');
 
-        $this->xmlTemplateReader->read(
+        $xmlTemplateReader->read(
             <<<'XML'
 <root>
     <singleNode>1</singleNode>
@@ -37,7 +37,9 @@ XML
 
     public function testFiltersPass(): void
     {
-        $node = $this->xmlTemplateReader->read(
+        $xmlTemplateReader = new XmlTemplateReader(self::getTemplateXml(self::XML_VALID));
+
+        $node = $xmlTemplateReader->read(
             <<<'XML'
 <root>
     <singleNode>1</singleNode>
@@ -53,5 +55,15 @@ XML
         self::assertTrue($relationsMap->has('singleNode'));
         self::assertTrue($childrenMap->has('multipleNode'));
         self::assertCount(2, $childrenMap->get('multipleNode'));
+    }
+
+    public function testFailsForInvalidMode(): void
+    {
+        $xmlTemplateReader = new XmlTemplateReader(self::getTemplateXml(self::XML_INVALID));
+
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('The "root/invalid" node\'s tpl:type attribute value "invalid value" is invalid, expecting one of: single, collection');
+
+        $xmlTemplateReader->preloadTemplate();
     }
 }
