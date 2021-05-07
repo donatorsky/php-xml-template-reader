@@ -11,6 +11,9 @@
         "perMutator": "build/infection/per-mutator.md"
     },
     "mutators": {
+        "global-ignoreSourceCodeByRegex": [
+            "xml_parser_set_option"
+        ],
         "@default": true
     },
     "testFramework": "phpunit",

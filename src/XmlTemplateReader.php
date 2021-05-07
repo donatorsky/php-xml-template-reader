@@ -278,11 +278,9 @@ class XmlTemplateReader
         #[Language('XML')]
         string $xml
     ): NodeInterface {
-        $this->open();
-
-        $this->update($xml);
-
-        return $this->close();
+        return $this->open()
+            ->update($xml)
+            ->close();
     }
 
     /**
@@ -294,9 +292,7 @@ class XmlTemplateReader
         string $path,
         int $chunkSize = self::DEFAULT_CHUNK_SIZE
     ): ?NodeInterface {
-        $stream = fopen($path, 'rb');
-
-        return $this->readStream($stream, $chunkSize);
+        return $this->readStream(fopen($path, 'rb'), $chunkSize);
     }
 
     /**
@@ -309,7 +305,7 @@ class XmlTemplateReader
         $stream,
         int $chunkSize = self::DEFAULT_CHUNK_SIZE
     ): ?NodeInterface {
-        Assertion::greaterThan($chunkSize, 0, 'The read chunk size must be greater than 0');
+        Assertion::greaterThan($chunkSize, 0, 'Provided read chunk size %1$s must be greater than 0.');
 
         $this->open();
 
@@ -449,7 +445,7 @@ class XmlTemplateReader
     {
         $children = $simpleXMLElement->children();
 
-        if (0 === $children->count()) {
+        if ($children->count() < 1) {
             return;
         }
 

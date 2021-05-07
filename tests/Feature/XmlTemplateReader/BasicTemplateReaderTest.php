@@ -167,6 +167,26 @@ XML
         return $nodeValueObject;
     }
 
+    public function invalidChunkSizeDataProvider(): array
+    {
+        return [
+            'Zero'     => ['chunkSize' => 0],
+            'Negative' => ['chunkSize' => -1],
+        ];
+    }
+
+    /**
+     * @depends testCanBeConstructedWithDefaultDispatcher
+     * @dataProvider invalidChunkSizeDataProvider
+     */
+    public function testFailToParseFromResourceWithInvalidChunkSize(int $chunkSize, XmlTemplateReader $xmlTemplateReader): void
+    {
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage(sprintf('Provided read chunk size %d must be greater than 0.', $chunkSize));
+
+        $xmlTemplateReader->readStream(fopen(self::getXmlPath(self::XML_CORRECT, 'data'), 'rb+'), $chunkSize);
+    }
+
     /**
      * @depends testCanBeConstructedWithDefaultDispatcher
      */
