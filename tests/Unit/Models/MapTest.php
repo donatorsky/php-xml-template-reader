@@ -8,6 +8,7 @@ use Donatorsky\XmlTemplate\Reader\Tests\Extensions\WithFaker;
 use OutOfBoundsException;
 use PHPUnit\Framework\TestCase;
 use stdClass;
+use TypeError;
 
 /**
  * @covers \Donatorsky\XmlTemplate\Reader\Models\Map
@@ -57,6 +58,42 @@ class MapTest extends TestCase
         $this->expectExceptionMessage(sprintf('The element with name "%s" does not exist', $name));
 
         $map->get($name);
+    }
+
+    /**
+     * @depends testEmptyMapCanBeConstructed
+     */
+    public function testFailToGetItemByNonStringName(Map $map): void
+    {
+        $offset = $this->faker->numberBetween();
+
+        $this->expectException(TypeError::class);
+
+        if (PHP_MAJOR_VERSION < 8) {
+            $this->expectExceptionMessage(sprintf('Argument 1 passed to %s::get() must be of the type string, int given', Map::class));
+        } else {
+            $this->expectExceptionMessage(sprintf('%s::get(): Argument #1 ($name) must be of type string, int given', Map::class));
+        }
+
+        $map->offsetGet($offset);
+    }
+
+    /**
+     * @depends testEmptyMapCanBeConstructed
+     */
+    public function testFailToSetItemWithNonStringName(Map $map): void
+    {
+        $offset = $this->faker->numberBetween();
+
+        $this->expectException(TypeError::class);
+
+        if (PHP_MAJOR_VERSION < 8) {
+            $this->expectExceptionMessage(sprintf('Argument 1 passed to %s::set() must be of the type string, int given', Map::class));
+        } else {
+            $this->expectExceptionMessage(sprintf('%s::set(): Argument #1 ($name) must be of type string, int given', Map::class));
+        }
+
+        $map->offsetSet($offset, $this->faker->sentence());
     }
 
     /**

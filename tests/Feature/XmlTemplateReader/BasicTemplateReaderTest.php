@@ -227,6 +227,52 @@ XML
         self::assertSame($nodeFromString->toArray(), $nodeFromStream->toArray());
     }
 
+    /**
+     * @depends testCanBeConstructedWithDefaultDispatcher
+     * @depends testAllMethodsResultInTheSameOutput
+     */
+    public function testFailToUpdateStreamWhenWhenItWasNotOpened(XmlTemplateReader $xmlTemplateReader): void
+    {
+        self::assertFalse($xmlTemplateReader->isOpened());
+
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('Streamed reading has not been started yet, ::open() it first.');
+
+        $xmlTemplateReader->update('<root></root>');
+    }
+
+    /**
+     * @depends testCanBeConstructedWithDefaultDispatcher
+     * @depends testAllMethodsResultInTheSameOutput
+     */
+    public function testFailToCloseStreamedReadingWhenItWasNotOpened(XmlTemplateReader $xmlTemplateReader): void
+    {
+        self::assertFalse($xmlTemplateReader->isOpened());
+
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('Streamed reading has not been started yet, ::open() it first.');
+
+        $xmlTemplateReader->close();
+    }
+
+    /**
+     * @depends testCanBeConstructedWithDefaultDispatcher
+     * @depends testFailToUpdateStreamWhenWhenItWasNotOpened
+     * @depends testFailToCloseStreamedReadingWhenItWasNotOpened
+     */
+    public function testFailToCloseStreamedReadingWhenThereAreStillSomeNodesOpened(XmlTemplateReader $xmlTemplateReader): void
+    {
+        self::assertFalse($xmlTemplateReader->isOpened());
+
+        $xmlTemplateReader->open();
+        $xmlTemplateReader->update('<root>');
+
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('Streamed reading has not been finished yet, there are still 1 node(s) opened.');
+
+        $xmlTemplateReader->close();
+    }
+
     private static function assertNodeObjectIsComplete(NodeInterface $rootNode): void
     {
         // root node

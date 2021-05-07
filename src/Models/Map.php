@@ -5,7 +5,6 @@ namespace Donatorsky\XmlTemplate\Reader\Models;
 
 use ArrayAccess;
 use ArrayIterator;
-use Assert\Assertion;
 use Countable;
 use IteratorAggregate;
 use OutOfBoundsException;
@@ -99,6 +98,11 @@ class Map implements ArrayAccess, IteratorAggregate, Countable
         return $this->has($offset);
     }
 
+    /**
+     * @param string $offset
+     *
+     * @return TValue
+     */
     public function offsetGet($offset)
     {
         return $this->get($offset);
@@ -107,13 +111,9 @@ class Map implements ArrayAccess, IteratorAggregate, Countable
     /**
      * @param string $offset
      * @param TValue $value
-     *
-     * @throws \Assert\AssertionFailedException
      */
     public function offsetSet($offset, $value): void
     {
-        Assertion::string($offset);
-
         $this->set($offset, $value);
     }
 

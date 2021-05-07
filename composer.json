@@ -64,6 +64,10 @@
             "phpstan analyse -l max src --memory-limit=256M --ansi --verbose",
             "phpstan analyse -l 6 tests -c phpstan.tests.neon --memory-limit=256M --ansi --verbose"
         ],
+        "lint": [
+            "@lint:cs:fix",
+            "@lint:stan:analyse"
+        ],
 
         "tests:unit": [
             "phpunit --colors=auto"
@@ -74,11 +78,9 @@
         "tests:mutation:ci": [
             "infection --min-msi=80 --min-covered-msi=80 --threads=8 --log-verbosity=none"
         ],
-
-        "lint": [
-            "@lint:cs:fix",
-            "@lint:stan:analyse",
-            "@lint:test:unit"
+        "test": [
+            "@tests:unit",
+            "@tests:mutation"
         ]
     },
     "config": {

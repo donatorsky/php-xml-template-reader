@@ -9,6 +9,11 @@ parameters:
     ignoreErrors:
         # False positives
         - '#^Parameter \x232 \$value of method Donatorsky\\XmlTemplate\\Reader\\Models\\Map<Donatorsky\\XmlTemplate\\Reader\\Models\\Collection<Donatorsky\\XmlTemplate\\Reader\\Models\\Contracts\\NodeInterface>>::set\(\) expects Donatorsky\\XmlTemplate\\Reader\\Models\\Collection<Donatorsky\\XmlTemplate\\Reader\\Models\\Contracts\\NodeInterface>, Donatorsky\\XmlTemplate\\Reader\\Models\\Collection<Donatorsky\\XmlTemplate\\Reader\\Models\\Node> given\.$#'
+
+        # Test Cases
         -
             message: '#^Parameter \x232 \$ruleClassFqn of method Donatorsky\\XmlTemplate\\Reader\\XmlTemplateReader::registerRuleFilter\(\) expects class-string<Donatorsky\\XmlTemplate\\Reader\\Rules\\Contracts\\RuleInterface>, string given\.$#'
             path: tests/Feature/XmlTemplateReader/CustomFilterTest.php
+        -
+            message: '#^Parameter \x231 \$offset of method Donatorsky\\XmlTemplate\\Reader\\Models\\Map<mixed>::offset[GS]et\(\) expects string, int given\.$#'
+            path: tests/Unit/Models/MapTest.php

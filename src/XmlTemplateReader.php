@@ -61,7 +61,7 @@ class XmlTemplateReader
     private array $pathForHash = [];
 
     /**
-     * @var non-empty-array<NodeInterface>
+     * @var array<NodeInterface>
      */
     private array $pathForObject;
 
@@ -210,7 +210,7 @@ class XmlTemplateReader
         #[Language('XML')]
         string $xml
     ): self {
-        Assertion::true($this->isOpened());
+        Assertion::true($this->isOpened(), 'Streamed reading has not been started yet, ::open() it first.');
 
         $exception = null;
 
@@ -241,13 +241,20 @@ class XmlTemplateReader
     }
 
     /**
+     * @throws \Assert\AssertionFailedException When XML reading has not been started yet
      * @throws \Assert\AssertionFailedException When XML reading is not finished yet and there are still open nodes
      */
     public function close(): NodeInterface
     {
         $this->deinitializeParser();
 
-        Assertion::count($this->pathForObject, 1);
+        $nodesCount = \count($this->pathForObject);
+
+        if ($nodesCount < 1) {
+            Assertion::true(false, 'Streamed reading has not been started yet, ::open() it first.');
+        } elseif ($nodesCount > 1) {
+            Assertion::true(false, sprintf('Streamed reading has not been finished yet, there are still %d node(s) opened.', $nodesCount - 1));
+        }
 
         $this->counter = [];
 
@@ -361,6 +368,7 @@ class XmlTemplateReader
 
         $this->path[] = $nodeName;
 
+        /** @var NodeInterface $parentNodeValueObject */
         $parentNodeValueObject = end($this->pathForObject);
 
         $this->eventDispatcher->dispatch(
@@ -387,9 +395,12 @@ class XmlTemplateReader
 
     private function dispatchCDataReadEvent(): void
     {
+        /** @var NodeInterface $currentNodeValueObject */
+        $currentNodeValueObject = end($this->pathForObject);
+
         $this->eventDispatcher->dispatch(
             new CDataRead(
-                end($this->pathForObject),
+                $currentNodeValueObject,
                 $this->cData,
             ),
             sprintf('cdata@%s', implode('/', $this->path)),
@@ -410,9 +421,12 @@ class XmlTemplateReader
 
         array_pop($this->pathForHash);
 
+        /** @var NodeInterface $currentNodeValueObject */
+        $currentNodeValueObject = end($this->pathForObject);
+
         $this->eventDispatcher->dispatch(
             new TagClosed(
-                end($this->pathForObject),
+                $currentNodeValueObject,
                 $nodeName,
             ),
             sprintf('close@%s', implode('/', $this->path)),
