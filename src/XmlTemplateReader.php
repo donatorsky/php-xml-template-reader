@@ -455,11 +455,11 @@ class XmlTemplateReader
 
             // Read parsing configuration
             $configuration = [
-                'required' => filter_var(
-                    (string) ($configurationAttributes['required'] ?? self::CONFIGURATION_REQUIRED_TRUE),
-                    FILTER_VALIDATE_BOOLEAN,
-                    FILTER_NULL_ON_FAILURE,
-                ),
+                //'required' => filter_var(
+                //    (string) ($configurationAttributes['required'] ?? self::CONFIGURATION_REQUIRED_TRUE),
+                //    FILTER_VALIDATE_BOOLEAN,
+                //    FILTER_NULL_ON_FAILURE,
+                //),
 
                 'attributesRules'   => [],
                 'contents'          => '',
@@ -476,12 +476,12 @@ class XmlTemplateReader
                     self::CONFIGURATION_CONTENTS_RAW;
             }
 
-            Assertion::notNull($configuration['required'], sprintf(
-                'The "%s" node\'s %s:required attribute value "%s" is invalid, true or false was expected',
-                $currentPathString,
-                $this->namespace,
-                $configurationAttributes['required'],
-            ));
+            //Assertion::notNull($configuration['required'], sprintf(
+            //    'The "%s" node\'s %s:required attribute value "%s" is invalid, true or false was expected',
+            //    $currentPathString,
+            //    $this->namespace,
+            //    $configurationAttributes['required'],
+            //));
 
             Assertion::choice($configuration['contents'], [
                 self::CONFIGURATION_CONTENTS_NONE,

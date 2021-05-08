@@ -76,7 +76,7 @@
             "infection --threads=8 --log-verbosity=all"
         ],
         "tests:mutation:ci": [
-            "infection --min-msi=75 --min-covered-msi=90 --threads=8 --log-verbosity=none"
+            "infection --min-msi=80 --min-covered-msi=95 --threads=8 --log-verbosity=none"
         ],
         "test": [
             "@tests:unit",
