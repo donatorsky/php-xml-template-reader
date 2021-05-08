@@ -3,14 +3,9 @@ declare(strict_types=1);
 
 namespace Donatorsky\XmlTemplate\Reader\Tests\Feature\XmlTemplateReader;
 
-use Assert\InvalidArgumentException;
-use Donatorsky\XmlTemplate\Reader\Exceptions\UnknownRuleException;
-use Donatorsky\XmlTemplate\Reader\Exceptions\XmlParsingFailedException;
 use Donatorsky\XmlTemplate\Reader\Models\Contracts\NodeInterface;
 use Donatorsky\XmlTemplate\Reader\Models\Node;
 use Donatorsky\XmlTemplate\Reader\XmlTemplateReader;
-use Exception;
-use Symfony\Component\EventDispatcher\EventDispatcher;
 
 /**
  * @covers \Donatorsky\XmlTemplate\Reader\XmlTemplateReader
@@ -20,180 +15,38 @@ class BasicTemplateReaderTest extends AbstractXmlTemplateReaderTest
 {
     private const XML_CORRECT = 'correct';
 
-    public function testFailToConstructWithInvalidXmlTemplateSyntax(): void
-    {
-        $this->expectException(Exception::class);
-        $this->expectExceptionMessage('String could not be parsed as XML');
+    private XmlTemplateReader $xmlTemplateReader;
 
-        (new XmlTemplateReader('<wrong-xml'))->preloadTemplate();
+    protected function setUp(): void
+    {
+        $this->xmlTemplateReader = new XmlTemplateReader(self::getTemplateXml(self::XML_CORRECT));
+
+        $this->xmlTemplateReader->preloadTemplate();
+
+        self::assertFalse($this->xmlTemplateReader->isOpened());
     }
 
-    public function testFailToConstructWithNoXmlTemplateNamespace(): void
+    public function testXmlCanBeParsedFromString(): NodeInterface
     {
-        $this->expectException(InvalidArgumentException::class);
-        $this->expectExceptionMessage('You need to specify exactly one template namespace, 0 provided');
-
-        (new XmlTemplateReader(
-            <<<'XML'
-<?xml version="1.0" encoding="UTF-8" ?>
-<template>
-    <root>
-    </root>
-</template>
-XML
-        ))->preloadTemplate();
-    }
-
-    public function testFailToConstructWithMoreThanOneXmlTemplateNamespace(): void
-    {
-        $this->expectException(InvalidArgumentException::class);
-        $this->expectExceptionMessage('You need to specify exactly one template namespace, 2 provided');
-
-        (new XmlTemplateReader(
-            <<<'XML'
-<?xml version="1.0" encoding="UTF-8" ?>
-<template xmlns:tpl="http://www.w3.org/2001/XMLSchema-instance"
-          tpl:noNamespaceSchemaLocation="../../../src/xml-template-reader.xsd"
-          xmlns:tpl2="http://www.w3.org/2001/XMLSchema-instance"
-          tpl2:noNamespaceSchemaLocation="../../../src/xml-template-reader.xsd">
-    <root tpl:attribute1=""
-          tpl2:attribute2="">
-    </root>
-</template>
-XML
-        ))->preloadTemplate();
-    }
-
-    public function testFailToConstructWithOneXmlTemplateNamespaceWithoutSchemaLocation(): void
-    {
-        $this->expectException(InvalidArgumentException::class);
-        $this->expectExceptionMessage('You need to specify exactly one template namespace, 0 provided');
-
-        (new XmlTemplateReader(
-            <<<'XML'
-<?xml version="1.0" encoding="UTF-8" ?>
-<template xmlns:tpl="http://www.w3.org/2001/XMLSchema-instance">
-    <root tpl:attribute="">
-    </root>
-</template>
-XML
-        ))->preloadTemplate();
-    }
-
-    public function testFailToConstructFromXmlTemplateWithUnknownRule(): void
-    {
-        $this->expectException(UnknownRuleException::class);
-        $this->expectExceptionMessage('The rule "nonExistentRule" is unknown');
-
-        (new XmlTemplateReader(
-            <<<'XML'
-<?xml version="1.0" encoding="UTF-8" ?>
-<template xmlns:tpl="http://www.w3.org/2001/XMLSchema-instance"
-          tpl:noNamespaceSchemaLocation="../../../src/xml-template-reader.xsd">
-    <root tpl:attribute="" id="nonExistentRule">
-    </root>
-</template>
-XML
-        ))->preloadTemplate();
-    }
-
-    public function testCanBeConstructedWithCustomDispatcher(): void
-    {
-        $eventDispatcher = new EventDispatcher();
-
-        $xmlTemplateReader = new XmlTemplateReader(self::getTemplateXml(self::XML_CORRECT), $eventDispatcher);
-
-        self::assertFalse($xmlTemplateReader->isPreloaded());
-
-        $xmlTemplateReader->preloadTemplate();
-
-        self::assertTrue($xmlTemplateReader->isPreloaded());
-        self::assertSame('tpl', $xmlTemplateReader->getNamespace());
-        self::assertSame($eventDispatcher, $xmlTemplateReader->getEventDispatcher());
-    }
-
-    public function testCanBeConstructedWithDefaultDispatcher(): XmlTemplateReader
-    {
-        $xmlTemplateReader = new XmlTemplateReader(self::getTemplateXml(self::XML_CORRECT));
-
-        self::assertFalse($xmlTemplateReader->isPreloaded());
-
-        $xmlTemplateReader->preloadTemplate();
-
-        self::assertTrue($xmlTemplateReader->isPreloaded());
-        self::assertSame('tpl', $xmlTemplateReader->getNamespace());
-        self::assertInstanceOf(EventDispatcher::class, $xmlTemplateReader->getEventDispatcher());
-
-        return $xmlTemplateReader;
-    }
-
-    /**
-     * @depends clone testCanBeConstructedWithDefaultDispatcher
-     */
-    public function testFailToOpenWhenAlreadyIsOpened(XmlTemplateReader $xmlTemplateReader): void
-    {
-        self::assertFalse($xmlTemplateReader->isOpened());
-
-        $xmlTemplateReader->open();
-
-        self::assertTrue($xmlTemplateReader->isOpened());
-
-        $this->expectException(InvalidArgumentException::class);
-        $this->expectExceptionMessage('Reading is already in progress');
-
-        $xmlTemplateReader->open();
-    }
-
-    /**
-     * @depends testCanBeConstructedWithDefaultDispatcher
-     */
-    public function testXmlCanBeParsedFromString(XmlTemplateReader $xmlTemplateReader): NodeInterface
-    {
-        $nodeValueObject = $xmlTemplateReader->read(self::getDataXml(self::XML_CORRECT));
+        $nodeValueObject = $this->xmlTemplateReader->read(self::getDataXml(self::XML_CORRECT));
 
         self::assertNodeObjectIsComplete($nodeValueObject);
 
         return $nodeValueObject;
     }
 
-    /**
-     * @depends testCanBeConstructedWithDefaultDispatcher
-     */
-    public function testXmlCanBeParsedFromFile(XmlTemplateReader $xmlTemplateReader): NodeInterface
+    public function testXmlCanBeParsedFromFile(): NodeInterface
     {
-        $nodeValueObject = $xmlTemplateReader->readFile(self::getXmlPath(self::XML_CORRECT, 'data'));
+        $nodeValueObject = $this->xmlTemplateReader->readFile(self::getXmlPath(self::XML_CORRECT, 'data'));
 
         self::assertNodeObjectIsComplete($nodeValueObject);
 
         return $nodeValueObject;
     }
 
-    public function invalidChunkSizeDataProvider(): array
+    public function testXmlCanBeParsedFromResource(): NodeInterface
     {
-        return [
-            'Zero'     => ['chunkSize' => 0],
-            'Negative' => ['chunkSize' => -1],
-        ];
-    }
-
-    /**
-     * @depends      testCanBeConstructedWithDefaultDispatcher
-     * @dataProvider invalidChunkSizeDataProvider
-     */
-    public function testFailToParseFromResourceWithInvalidChunkSize(int $chunkSize, XmlTemplateReader $xmlTemplateReader): void
-    {
-        $this->expectException(InvalidArgumentException::class);
-        $this->expectExceptionMessage(sprintf('Provided read chunk size %d must be greater than 0.', $chunkSize));
-
-        $xmlTemplateReader->readStream(fopen(self::getXmlPath(self::XML_CORRECT, 'data'), 'rb+'), $chunkSize);
-    }
-
-    /**
-     * @depends testCanBeConstructedWithDefaultDispatcher
-     */
-    public function testXmlCanBeParsedFromResource(XmlTemplateReader $xmlTemplateReader): NodeInterface
-    {
-        $nodeValueObject = $xmlTemplateReader->readStream(fopen(self::getXmlPath(self::XML_CORRECT, 'data'), 'r'));
+        $nodeValueObject = $this->xmlTemplateReader->readStream(fopen(self::getXmlPath(self::XML_CORRECT, 'data'), 'rb'));
 
         self::assertNodeObjectIsComplete($nodeValueObject);
 
@@ -202,28 +55,36 @@ XML
 
     public function chunkSizeDataProvider(): iterable
     {
-        for ($chunkSize = 2, $maxChunkSize = ceil(sqrt(filesize(self::getXmlPath(self::XML_CORRECT, 'data')))); $chunkSize <= $maxChunkSize; ++$chunkSize) {
+        for (
+            $chunkSize = 1, $maxChunkSize = ceil(sqrt(filesize(self::getXmlPath(self::XML_CORRECT, 'data'))));
+            $chunkSize <= $maxChunkSize;
+            ++$chunkSize
+        ) {
             yield sprintf('Chunk size = %d', $chunkSize) => [$chunkSize];
         }
     }
 
     /**
      * @dataProvider chunkSizeDataProvider
-     * @depends      testCanBeConstructedWithDefaultDispatcher
      */
-    public function testXmlCanBeParsedAsStream(int $chunkSize, XmlTemplateReader $xmlTemplateReader): void
+    public function testXmlCanBeParsedFromStreamWithCustomChunks(int $chunkSize): void
     {
-        $nodeValueObject = self::customReadByChunkSize($xmlTemplateReader, $chunkSize);
+        $nodeValueObject = $this->xmlTemplateReader->readStream(fopen(self::getXmlPath(self::XML_CORRECT, 'data'), 'rb'), $chunkSize);
 
         self::assertNodeObjectIsComplete($nodeValueObject);
     }
 
     /**
-     * @depends testCanBeConstructedWithDefaultDispatcher
+     * @dataProvider chunkSizeDataProvider
      */
-    public function testXmlCanBeParsedByByte(XmlTemplateReader $xmlTemplateReader): NodeInterface
+    public function testXmlCanBeParsedAsStream(int $chunkSize): void
     {
-        $nodeValueObject = self::customReadByChunkSize($xmlTemplateReader, 1);
+        self::assertNodeObjectIsComplete(self::customReadByChunkSize($this->xmlTemplateReader, $chunkSize));
+    }
+
+    public function testXmlCanBeParsedByByte(): NodeInterface
+    {
+        $nodeValueObject = self::customReadByChunkSize($this->xmlTemplateReader, 1);
 
         self::assertNodeObjectIsComplete($nodeValueObject);
 
@@ -246,66 +107,6 @@ XML
         self::assertSame($nodeFromString->toArray(), $nodeFromFile->toArray());
         self::assertSame($nodeFromString->toArray(), $nodeFromResource->toArray());
         self::assertSame($nodeFromString->toArray(), $nodeFromStream->toArray());
-    }
-
-    /**
-     * @depends testCanBeConstructedWithDefaultDispatcher
-     * @depends testAllMethodsResultInTheSameOutput
-     */
-    public function testFailToUpdateStreamWhenWhenItWasNotOpened(XmlTemplateReader $xmlTemplateReader): void
-    {
-        self::assertFalse($xmlTemplateReader->isOpened());
-
-        $this->expectException(InvalidArgumentException::class);
-        $this->expectExceptionMessage('Streamed reading has not been started yet, ::open() it first.');
-
-        $xmlTemplateReader->update('<root></root>');
-    }
-
-    /**
-     * @depends testCanBeConstructedWithDefaultDispatcher
-     * @depends testAllMethodsResultInTheSameOutput
-     */
-    public function testFailToCloseStreamedReadingWhenItWasNotOpened(XmlTemplateReader $xmlTemplateReader): void
-    {
-        self::assertFalse($xmlTemplateReader->isOpened());
-
-        $this->expectException(InvalidArgumentException::class);
-        $this->expectExceptionMessage('Streamed reading has not been started yet, ::open() it first.');
-
-        $xmlTemplateReader->close();
-    }
-
-    /**
-     * @depends clone testCanBeConstructedWithDefaultDispatcher
-     * @depends testFailToUpdateStreamWhenWhenItWasNotOpened
-     * @depends testFailToCloseStreamedReadingWhenItWasNotOpened
-     */
-    public function testFailToCloseStreamedReadingWhenThereAreStillSomeNodesOpened(XmlTemplateReader $xmlTemplateReader): void
-    {
-        self::assertFalse($xmlTemplateReader->isOpened());
-
-        $xmlTemplateReader->open()->update('<root>');
-
-        $this->expectException(InvalidArgumentException::class);
-        $this->expectExceptionMessage('Streamed reading has not been finished yet, there are still 1 node(s) opened.');
-
-        $xmlTemplateReader->close();
-    }
-
-    /**
-     * @depends clone testCanBeConstructedWithDefaultDispatcher
-     * @depends testFailToUpdateStreamWhenWhenItWasNotOpened
-     * @depends testFailToCloseStreamedReadingWhenItWasNotOpened
-     */
-    public function testFailToUpdateStreamWithInvalidXml(XmlTemplateReader $xmlTemplateReader): void
-    {
-        self::assertFalse($xmlTemplateReader->isOpened());
-
-        $this->expectException(XmlParsingFailedException::class);
-        $this->expectExceptionMessage('XML parsing failed: Not well-formed (invalid token)');
-
-        $xmlTemplateReader->open()->update(__METHOD__);
     }
 
     private static function assertNodeObjectIsComplete(NodeInterface $rootNode): void

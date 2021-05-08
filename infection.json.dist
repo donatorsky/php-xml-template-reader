@@ -11,6 +11,9 @@
         "perMutator": "build/infection/per-mutator.md"
     },
     "mutators": {
+        "global-ignore": [
+            "Donatorsky\\XmlTemplate\\Reader\\XmlTemplateReader::deinitializeParser"
+        ],
         "global-ignoreSourceCodeByRegex": [
             "\\$this->deinitializeParser\\(\\).*",
             "xml_parse\\(\\$this->xmlParser, '', true\\).*",

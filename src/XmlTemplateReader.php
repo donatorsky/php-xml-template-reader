@@ -67,7 +67,7 @@ class XmlTemplateReader
     /**
      * @var array<NodeInterface>
      */
-    private array $pathForObject;
+    private array $pathForObject = [];
 
     /**
      * @var array<string,array<string,int>>
@@ -190,6 +190,7 @@ class XmlTemplateReader
 
     /**
      * @throws \Assert\AssertionFailedException
+     * @throws \Safe\Exceptions\XmlException
      */
     public function open(): self
     {
@@ -248,9 +249,10 @@ class XmlTemplateReader
      */
     public function close(): NodeInterface
     {
+        Assertion::true($this->isOpened(), 'Streamed reading has not been started yet, ::open() it first.');
+
         $this->deinitializeParser();
 
-        Assertion::count($this->pathForObject, 1, 'Streamed reading has not been started yet, ::open() it first.');
         Assertion::count($this->path, 0, 'Streamed reading has not been finished yet, there are still %2$s node(s) opened.');
 
         $this->counter = [];
