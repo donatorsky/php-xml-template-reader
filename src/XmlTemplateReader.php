@@ -16,13 +16,13 @@ use Donatorsky\XmlTemplate\Reader\Models\Contracts\NodeInterface;
 use Donatorsky\XmlTemplate\Reader\Models\Node;
 use Donatorsky\XmlTemplate\Reader\Rules\Contracts\ContextAwareRuleInterface;
 use JetBrains\PhpStorm\Language;
-use RuntimeException;
 use SimpleXMLElement;
 use Symfony\Component\EventDispatcher\EventDispatcher;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Throwable;
 use function Safe\fopen;
 use function Safe\fread;
+use function Safe\preg_match_all;
 use function Safe\xml_parser_create;
 use function Safe\xml_set_object;
 
@@ -435,6 +435,7 @@ class XmlTemplateReader
      * @throws \Donatorsky\XmlTemplate\Reader\Exceptions\RuleValidationFailedException
      * @throws \Donatorsky\XmlTemplate\Reader\Exceptions\UnexpectedMultipleNodeReadException
      * @throws \Donatorsky\XmlTemplate\Reader\Exceptions\UnknownRuleException
+     * @throws \Safe\Exceptions\PcreException
      */
     private function addListenersFromTemplate(SimpleXMLElement $simpleXMLElement, array $path = []): void
     {
@@ -529,11 +530,7 @@ class XmlTemplateReader
             foreach ($child->attributes() as $name => $rulesDefinition) {
                 $rules = [];
 
-                if (false === preg_match_all('/(?P<rule>\w+)(?:\s*:\s*(?P<parameters>[^|]+)\s*)?/m', (string) $rulesDefinition, $matches, PREG_SET_ORDER)) {
-                    // @codeCoverageIgnoreStart
-                    throw new RuntimeException('Unexpected PRCE2 error');
-                    // @codeCoverageIgnoreEnd
-                }
+                preg_match_all('/(?P<rule>\w+)(?:\s*:\s*(?P<parameters>[^|]+)\s*)?/m', (string) $rulesDefinition, $matches, PREG_SET_ORDER);
 
                 foreach ($matches as $match) {
                     $ruleClass = $this->rulesClassmap[strtolower($match['rule'])] ?? null;

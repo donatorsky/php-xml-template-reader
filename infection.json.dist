@@ -2,6 +2,10 @@
     "source": {
         "directories": [
             "src"
+        ],
+        "excludes": [
+            "Events",
+            "Exceptions"
         ]
     },
     "timeout": 5,

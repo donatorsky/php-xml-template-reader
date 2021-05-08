@@ -73,10 +73,10 @@
             "phpunit --colors=auto"
         ],
         "tests:mutation": [
-            "infection --threads=8 --log-verbosity=all"
+            "infection --threads=8 --log-verbosity=default"
         ],
         "tests:mutation:ci": [
-            "infection --min-msi=80 --min-covered-msi=95 --threads=8 --log-verbosity=none"
+            "infection --min-msi=95 --min-covered-msi=95 --threads=8 --log-verbosity=none"
         ],
         "test": [
             "@tests:unit",
