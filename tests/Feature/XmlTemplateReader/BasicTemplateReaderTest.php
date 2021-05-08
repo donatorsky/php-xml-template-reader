@@ -5,6 +5,7 @@ namespace Donatorsky\XmlTemplate\Reader\Tests\Feature\XmlTemplateReader;
 
 use Assert\InvalidArgumentException;
 use Donatorsky\XmlTemplate\Reader\Exceptions\UnknownRuleException;
+use Donatorsky\XmlTemplate\Reader\Exceptions\XmlParsingFailedException;
 use Donatorsky\XmlTemplate\Reader\Models\Contracts\NodeInterface;
 use Donatorsky\XmlTemplate\Reader\Models\Node;
 use Donatorsky\XmlTemplate\Reader\XmlTemplateReader;
@@ -276,7 +277,7 @@ XML
     }
 
     /**
-     * @depends testCanBeConstructedWithDefaultDispatcher
+     * @depends clone testCanBeConstructedWithDefaultDispatcher
      * @depends testFailToUpdateStreamWhenWhenItWasNotOpened
      * @depends testFailToCloseStreamedReadingWhenItWasNotOpened
      */
@@ -284,13 +285,27 @@ XML
     {
         self::assertFalse($xmlTemplateReader->isOpened());
 
-        $xmlTemplateReader->open();
-        $xmlTemplateReader->update('<root>');
+        $xmlTemplateReader->open()->update('<root>');
 
         $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessage('Streamed reading has not been finished yet, there are still 1 node(s) opened.');
 
         $xmlTemplateReader->close();
+    }
+
+    /**
+     * @depends clone testCanBeConstructedWithDefaultDispatcher
+     * @depends testFailToUpdateStreamWhenWhenItWasNotOpened
+     * @depends testFailToCloseStreamedReadingWhenItWasNotOpened
+     */
+    public function testFailToUpdateStreamWithInvalidXml(XmlTemplateReader $xmlTemplateReader): void
+    {
+        self::assertFalse($xmlTemplateReader->isOpened());
+
+        $this->expectException(XmlParsingFailedException::class);
+        $this->expectExceptionMessage('XML parsing failed: Not well-formed (invalid token)');
+
+        $xmlTemplateReader->open()->update(__METHOD__);
     }
 
     private static function assertNodeObjectIsComplete(NodeInterface $rootNode): void

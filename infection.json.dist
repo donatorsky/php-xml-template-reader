@@ -4,7 +4,7 @@
             "src"
         ]
     },
-    "timeout": 10,
+    "timeout": 5,
     "logs": {
         "text": "build/infection/infection.log",
         "summary": "build/infection/summary.log",
@@ -12,7 +12,13 @@
     },
     "mutators": {
         "global-ignoreSourceCodeByRegex": [
-            "xml_parser_set_option"
+            "\\$this->deinitializeParser\\(\\).*",
+            "xml_parse\\(\\$this->xmlParser, '', true\\).*",
+            "xml_parser_free\\(\\$this->xmlParser\\).*",
+            "xml_parser_set_option\\(\\$this->xmlParser,.*",
+            "xml_set_character_data_handler\\(\\$this->xmlParser,.*",
+            "xml_set_element_handler\\(\\$this->xmlParser,.*",
+            "xml_set_object\\(\\$this->xmlParser, \\$this\\).*"
         ],
         "@default": true
     },

@@ -59,6 +59,7 @@ class TrimTest extends TestCase
     {
         $value = $this->faker->sentence;
 
+        self::assertSame($value, $this->rule->process($value));
         self::assertSame($value, $this->rule->process(sprintf('  %s  ', $value)));
     }
 }

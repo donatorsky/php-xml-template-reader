@@ -13,7 +13,7 @@ class Numeric implements RuleInterface
     }
 
     /**
-     * @param mixed $value
+     * @param numeric-string|float|int $value
      *
      * @return float|int
      */

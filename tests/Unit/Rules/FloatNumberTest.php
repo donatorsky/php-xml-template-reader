@@ -4,7 +4,6 @@ declare(strict_types=1);
 namespace Donatorsky\XmlTemplate\Reader\Tests\Unit\Rules;
 
 use Donatorsky\XmlTemplate\Reader\Rules\FloatNumber;
-use Donatorsky\XmlTemplate\Reader\Tests\Extensions\WithFaker;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -13,24 +12,89 @@ use PHPUnit\Framework\TestCase;
  */
 class FloatNumberTest extends TestCase
 {
-    use WithFaker {
-        setUp as setUpFaker;
-    }
-
     private FloatNumber $rule;
 
     protected function setUp(): void
     {
-        $this->setUpFaker();
-
         $this->rule = new FloatNumber();
     }
 
-    public function testProcessTransformsValueToFloat(): void
+    public function validNumberDataProvider(): iterable
     {
-        $value = $this->faker->randomFloat(6, -1000.0, 1000.0);
+        yield 'Negative float' => [
+            'value'    => -123.45,
+            'expected' => -123.45,
+        ];
 
-        self::assertSame($value, $this->rule->process((string) $value));
-        self::assertSame(12300.0, $this->rule->process('1.23e4'));
+        yield 'Zero float' => [
+            'value'    => 0.0,
+            'expected' => 0.0,
+        ];
+
+        yield 'Positive float' => [
+            'value'    => 123.45,
+            'expected' => 123.45,
+        ];
+
+        yield 'Negative float string' => [
+            'value'    => '-123.45',
+            'expected' => -123.45,
+        ];
+
+        yield 'Zero float string' => [
+            'value'    => '0.0',
+            'expected' => 0.0,
+        ];
+
+        yield 'Positive float string' => [
+            'value'    => '123.45',
+            'expected' => 123.45,
+        ];
+
+        yield 'Scientific notation string' => [
+            'value'    => '1.23e4',
+            'expected' => 12300.0,
+        ];
+
+        yield 'Negative integer' => [
+            'value'    => -123,
+            'expected' => -123.0,
+        ];
+
+        yield 'Zero integer' => [
+            'value'    => 0,
+            'expected' => 0.0,
+        ];
+
+        yield 'Positive integer' => [
+            'value'    => 123,
+            'expected' => 123.0,
+        ];
+
+        yield 'Negative integer string' => [
+            'value'    => '-123',
+            'expected' => -123.0,
+        ];
+
+        yield 'Zero integer string' => [
+            'value'    => '0',
+            'expected' => 0.0,
+        ];
+
+        yield 'Positive integer string' => [
+            'value'    => '123',
+            'expected' => 123.0,
+        ];
+    }
+
+    /**
+     * @dataProvider validNumberDataProvider
+     *
+     * @param mixed $value
+     * @param mixed $expected
+     */
+    public function testProcessTransformsValueToFloat($value, $expected): void
+    {
+        self::assertSame($expected, $this->rule->process($value));
     }
 }

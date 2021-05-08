@@ -127,11 +127,13 @@ class XmlTemplateReader
             LIBXML_NOERROR | LIBXML_NOWARNING | LIBXML_NONET,
         );
 
+        /** @var non-empty-array<non-empty-string,string> $namespaces */
         $namespaces = $simpleXMLElement->getNamespaces();
 
         Assertion::count($namespaces, 1, 'You need to specify exactly one template namespace, %2$d provided');
 
-        $this->namespace = (string) key($namespaces);
+        /** @noinspection PhpFieldAssignmentTypeMismatchInspection */
+        $this->namespace = key($namespaces);
 
         $this->addListenersFromTemplate($simpleXMLElement);
 
@@ -219,10 +221,7 @@ class XmlTemplateReader
         $exception = null;
 
         try {
-            $result = xml_parse($this->xmlParser, $xml);
-
-            if (!$result) {
-                // @codeCoverageIgnoreStart
+            if (!xml_parse($this->xmlParser, $xml)) {
                 throw new XmlParsingFailedException(
                     $errorCode = xml_get_error_code($this->xmlParser),
                     xml_error_string($errorCode) ?? 'Unknown parsing error',
@@ -230,7 +229,6 @@ class XmlTemplateReader
                     xml_get_current_column_number($this->xmlParser),
                     xml_get_current_byte_index($this->xmlParser),
                 );
-                // @codeCoverageIgnoreEnd
             }
         } catch (Throwable $exception) {
         } finally {
@@ -252,13 +250,8 @@ class XmlTemplateReader
     {
         $this->deinitializeParser();
 
-        $nodesCount = \count($this->pathForObject);
-
-        if ($nodesCount < 1) {
-            Assertion::true(false, 'Streamed reading has not been started yet, ::open() it first.');
-        } elseif ($nodesCount > 1) {
-            Assertion::true(false, sprintf('Streamed reading has not been finished yet, there are still %d node(s) opened.', $nodesCount - 1));
-        }
+        Assertion::count($this->pathForObject, 1, 'Streamed reading has not been started yet, ::open() it first.');
+        Assertion::count($this->path, 0, 'Streamed reading has not been finished yet, there are still %2$s node(s) opened.');
 
         $this->counter = [];
 

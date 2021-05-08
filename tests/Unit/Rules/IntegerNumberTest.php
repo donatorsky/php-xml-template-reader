@@ -4,7 +4,6 @@ declare(strict_types=1);
 namespace Donatorsky\XmlTemplate\Reader\Tests\Unit\Rules;
 
 use Donatorsky\XmlTemplate\Reader\Rules\IntegerNumber;
-use Donatorsky\XmlTemplate\Reader\Tests\Extensions\WithFaker;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -13,16 +12,10 @@ use PHPUnit\Framework\TestCase;
  */
 class IntegerNumberTest extends TestCase
 {
-    use WithFaker {
-        setUp as setUpFaker;
-    }
-
     private IntegerNumber $rule;
 
     protected function setUp(): void
     {
-        $this->setUpFaker();
-
         $this->rule = new IntegerNumber();
     }
 
@@ -44,10 +37,52 @@ class IntegerNumberTest extends TestCase
         self::assertFalse($this->rule->passes($value));
     }
 
-    public function testProcessTransformsValueToInteger(): void
+    public function validNumberDataProvider(): iterable
     {
-        $value = $this->faker->numberBetween(-1000, 1000);
+        yield 'Scientific notation string' => [
+            'value'    => '1.23e4',
+            'expected' => 12300,
+        ];
 
-        self::assertSame($value, $this->rule->process((string) $value));
+        yield 'Negative integer' => [
+            'value'    => -123,
+            'expected' => -123,
+        ];
+
+        yield 'Zero integer' => [
+            'value'    => 0,
+            'expected' => 0,
+        ];
+
+        yield 'Positive integer' => [
+            'value'    => 123,
+            'expected' => 123,
+        ];
+
+        yield 'Negative integer string' => [
+            'value'    => '-123',
+            'expected' => -123,
+        ];
+
+        yield 'Zero integer string' => [
+            'value'    => '0',
+            'expected' => 0,
+        ];
+
+        yield 'Positive integer string' => [
+            'value'    => '123',
+            'expected' => 123,
+        ];
+    }
+
+    /**
+     * @dataProvider validNumberDataProvider
+     *
+     * @param mixed $value
+     * @param mixed $expected
+     */
+    public function testProcessTransformsValueToInteger($value, $expected): void
+    {
+        self::assertSame($expected, $this->rule->process($value));
     }
 }
