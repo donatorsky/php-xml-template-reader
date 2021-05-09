@@ -29,7 +29,6 @@ class TypeModeTest extends AbstractXmlTemplateReaderTest
 <root>
     <singleNode>1</singleNode>
     <singleNode>2</singleNode>
-    <singleNode>3</singleNode>
 </root>
 XML
         );

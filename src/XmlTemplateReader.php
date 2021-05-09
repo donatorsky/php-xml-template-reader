@@ -70,9 +70,9 @@ class XmlTemplateReader
     private array $pathForObject = [];
 
     /**
-     * @var array<string,array<string,int>>
+     * @var array<string,array<string,array<string,int>>>
      */
-    private array $counter = [];
+    private array $stack = [];
 
     /**
      * @var array<string,class-string<Rules\Contracts\RuleInterface>>
@@ -92,13 +92,6 @@ class XmlTemplateReader
      * @var resource|\XMLParser|null
      */
     private $xmlParser;
-
-    /**
-     * Whether parser is currently reading tag's character data or not.
-     */
-    private bool $inCData = false;
-
-    private string $cData = '';
 
     public function __construct(
         #[Language('XML')]
@@ -255,7 +248,7 @@ class XmlTemplateReader
 
         Assertion::count($this->path, 0, 'Streamed reading has not been finished yet, there are still %2$s node(s) opened.');
 
-        $this->counter = [];
+        $this->stack = [];
 
         /** @var NodeInterface $wrapperObject */
         $wrapperObject = array_pop($this->pathForObject);
@@ -352,13 +345,6 @@ class XmlTemplateReader
      */
     private function onTagOpenRead($xmlParser, string $nodeName, array $attributes): void
     {
-        if ($this->inCData) {
-            $this->dispatchCDataReadEvent();
-
-            $this->inCData = false;
-            $this->cData = '';
-        }
-
         $this->path[] = $nodeName;
 
         /** @var NodeInterface $parentNodeValueObject */
@@ -382,19 +368,13 @@ class XmlTemplateReader
      */
     private function onCDataRead($xmlParser, string $contents): void
     {
-        $this->inCData = true;
-        $this->cData .= $contents;
-    }
-
-    private function dispatchCDataReadEvent(): void
-    {
         /** @var NodeInterface $currentNodeValueObject */
         $currentNodeValueObject = end($this->pathForObject);
 
         $this->eventDispatcher->dispatch(
             new CDataRead(
                 $currentNodeValueObject,
-                $this->cData,
+                $contents,
             ),
             sprintf('cdata@%s', implode('/', $this->path)),
         );
@@ -405,13 +385,6 @@ class XmlTemplateReader
      */
     private function onTagCloseRead($xmlParser, string $nodeName): void
     {
-        if ($this->inCData) {
-            $this->dispatchCDataReadEvent();
-
-            $this->inCData = false;
-            $this->cData = '';
-        }
-
         array_pop($this->pathForHash);
 
         /** @var NodeInterface $currentNodeValueObject */
@@ -463,7 +436,6 @@ class XmlTemplateReader
                 //),
 
                 'attributesRules'   => [],
-                'contents'          => '',
                 'type'              => (string) ($configurationAttributes['type'] ?? self::CONFIGURATION_TYPE_SINGLE),
                 'collectAttributes' => (string) ($configurationAttributes['collectAttributes'] ?? self::CONFIGURATION_COLLECT_ATTRIBUTES_VALIDATED),
                 'castTo'            => (string) ($configurationAttributes['castTo'] ?? Node::class),
@@ -556,9 +528,9 @@ class XmlTemplateReader
                     $parentNodeHash = $event->getParentNodeHash();
                     $currentNodeName = $event->getNodeName();
 
-                    $this->counter[$parentNodeHash][$currentNodeName] ??= 0;
+                    $this->stack[$parentNodeHash][$currentNodeName]['counter'] ??= 0;
 
-                    if (self::CONFIGURATION_TYPE_SINGLE === $configuration['type'] && ++$this->counter[$parentNodeHash][$currentNodeName] > 1) {
+                    if (self::CONFIGURATION_TYPE_SINGLE === $configuration['type'] && ++$this->stack[$parentNodeHash][$currentNodeName]['counter'] > 1) {
                         throw new UnexpectedMultipleNodeReadException($currentPathString);
                     }
 
@@ -635,8 +607,10 @@ class XmlTemplateReader
                         $contents = trim($contents);
                     }
 
-                    $event->getCurrentNodeValueObject()
-                        ->setContents($contents);
+                    if (null !== $contents) {
+                        $event->getCurrentNodeValueObject()
+                            ->appendContents($contents);
+                    }
                 }
             );
 

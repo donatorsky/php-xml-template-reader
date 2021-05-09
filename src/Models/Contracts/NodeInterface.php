@@ -26,6 +26,8 @@ interface NodeInterface
 
     public function setContents(?string $contents): self;
 
+    public function appendContents(string $contents): self;
+
     public function hasContents(): bool;
 
     public function getParent(): ?self;

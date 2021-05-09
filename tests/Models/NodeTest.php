@@ -90,7 +90,20 @@ class NodeTest extends TestCase
     }
 
     /**
+     * @depends clone testNodeCanBeConstructedWithDefaultParameters
+     */
+    public function testContentsCanBeAppendedWhenThereIsNoContents(Node $node): void
+    {
+        $contents = $this->faker->sentence();
+
+        self::assertSame($node, $node->appendContents($contents));
+        self::assertTrue($node->hasContents());
+        self::assertSame($contents, $node->getContents());
+    }
+
+    /**
      * @depends testNodeCanBeConstructedWithDefaultParameters
+     * @depends testContentsCanBeAppendedWhenThereIsNoContents
      */
     public function testContentsCanBeSet(Node $node): void
     {
@@ -99,6 +112,20 @@ class NodeTest extends TestCase
         self::assertSame($node, $node->setContents($contents));
         self::assertTrue($node->hasContents());
         self::assertSame($contents, $node->getContents());
+    }
+
+    /**
+     * @depends testNodeCanBeConstructedWithDefaultParameters
+     * @depends testContentsCanBeSet
+     */
+    public function testContentsCanBeAppendedToExistingContents(Node $node): void
+    {
+        $currentContents = $node->getContents();
+        $additionalContents = $this->faker->sentence();
+
+        self::assertSame($node, $node->appendContents($additionalContents));
+        self::assertTrue($node->hasContents());
+        self::assertSame($currentContents . $additionalContents, $node->getContents());
     }
 
     /**
