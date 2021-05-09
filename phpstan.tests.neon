@@ -12,8 +12,8 @@ parameters:
 
         # Test Cases
         -
-            message: '#^Parameter \x232 \$ruleClassFqn of method Donatorsky\\XmlTemplate\\Reader\\XmlTemplateReader::registerRuleFilter\(\) expects class-string<Donatorsky\\XmlTemplate\\Reader\\Rules\\Contracts\\RuleInterface>, string given\.$#'
-            path: tests/Feature/XmlTemplateReader/CustomFilterTest.php
-        -
             message: '#^Parameter \x231 \$offset of method Donatorsky\\XmlTemplate\\Reader\\Models\\Map<mixed>::offset[GS]et\(\) expects string, int given\.$#'
-            path: tests/Unit/Models/MapTest.php
+            path: tests/Models/MapTest.php
+        -
+            message: '#^Parameter \x232 \$ruleClassFqn of method Donatorsky\\XmlTemplate\\Reader\\XmlTemplateReader::registerRuleFilter\(\) expects class-string<Donatorsky\\XmlTemplate\\Reader\\Rules\\Contracts\\RuleInterface>, string given\.$#'
+            path: tests/XmlTemplateReader/CustomFilterTest.php
