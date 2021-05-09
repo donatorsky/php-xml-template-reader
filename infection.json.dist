@@ -1,0 +1,40 @@
+{
+    "source": {
+        "directories": [
+            "src"
+        ],
+        "excludes": [
+            "Events",
+            "Exceptions"
+        ]
+    },
+    "timeout": 5,
+    "logs": {
+        "text": "build/infection/infection.log",
+        "summary": "build/infection/summary.log",
+        "perMutator": "build/infection/per-mutator.md"
+    },
+    "mutators": {
+        "global-ignore": [
+            "Donatorsky\\XmlTemplate\\Reader\\XmlTemplateReader::deinitializeParser"
+        ],
+        "global-ignoreSourceCodeByRegex": [
+            "\\$this->deinitializeParser\\(\\).*",
+            "xml_parse\\(\\$this->xmlParser, '', true\\).*",
+            "xml_parser_free\\(\\$this->xmlParser\\).*",
+            "xml_parser_set_option\\(\\$this->xmlParser,.*",
+            "xml_set_character_data_handler\\(\\$this->xmlParser,.*",
+            "xml_set_element_handler\\(\\$this->xmlParser,.*",
+            "xml_set_object\\(\\$this->xmlParser, \\$this\\).*"
+        ],
+        "@default": true,
+        "ArrayItemRemoval": {
+            "ignoreSourceCodeByRegex": [
+                "'attributesRules'\\s*=>\\s*\\[\\],"
+            ]
+        }
+    },
+    "testFramework": "phpunit",
+    "testFrameworkOptions": "--do-not-cache-result",
+    "initialTestsPhpOptions": "-d xdebug.mode=coverage"
+}

@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<root custom="some value 1a"
+      customSpaced="some value 1b"
+      customAliased="some value 2a"
+      customAliasedSpaced="some value 2b">
+</root>

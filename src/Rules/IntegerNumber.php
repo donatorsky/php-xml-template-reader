@@ -10,6 +10,9 @@ class IntegerNumber extends Numeric
         return parent::passes($value) && false !== filter_var($value, FILTER_VALIDATE_INT);
     }
 
+    /**
+     * @param numeric-string|int $value
+     */
     public function process($value): int
     {
         return (int) parent::process($value);

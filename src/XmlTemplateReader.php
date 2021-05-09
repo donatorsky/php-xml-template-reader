@@ -16,11 +16,15 @@ use Donatorsky\XmlTemplate\Reader\Models\Contracts\NodeInterface;
 use Donatorsky\XmlTemplate\Reader\Models\Node;
 use Donatorsky\XmlTemplate\Reader\Rules\Contracts\ContextAwareRuleInterface;
 use JetBrains\PhpStorm\Language;
-use RuntimeException;
 use SimpleXMLElement;
 use Symfony\Component\EventDispatcher\EventDispatcher;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Throwable;
+use function Safe\fopen;
+use function Safe\fread;
+use function Safe\preg_match_all;
+use function Safe\xml_parser_create;
+use function Safe\xml_set_object;
 
 class XmlTemplateReader
 {
@@ -61,14 +65,14 @@ class XmlTemplateReader
     private array $pathForHash = [];
 
     /**
-     * @var non-empty-array<NodeInterface>
+     * @var array<NodeInterface>
      */
-    private array $pathForObject;
+    private array $pathForObject = [];
 
     /**
-     * @var array<string,array<string,int>>
+     * @var array<string,array<string,array<string,int>>>
      */
-    private array $counter = [];
+    private array $stack = [];
 
     /**
      * @var array<string,class-string<Rules\Contracts\RuleInterface>>
@@ -88,13 +92,6 @@ class XmlTemplateReader
      * @var resource|\XMLParser|null
      */
     private $xmlParser;
-
-    /**
-     * Whether parser is currently reading tag's character data or not.
-     */
-    private bool $inCData = false;
-
-    private string $cData = '';
 
     public function __construct(
         #[Language('XML')]
@@ -123,11 +120,13 @@ class XmlTemplateReader
             LIBXML_NOERROR | LIBXML_NOWARNING | LIBXML_NONET,
         );
 
+        /** @var non-empty-array<non-empty-string,string> $namespaces */
         $namespaces = $simpleXMLElement->getNamespaces();
 
         Assertion::count($namespaces, 1, 'You need to specify exactly one template namespace, %2$d provided');
 
-        $this->namespace = (string) key($namespaces);
+        /** @noinspection PhpFieldAssignmentTypeMismatchInspection */
+        $this->namespace = key($namespaces);
 
         $this->addListenersFromTemplate($simpleXMLElement);
 
@@ -184,6 +183,7 @@ class XmlTemplateReader
 
     /**
      * @throws \Assert\AssertionFailedException
+     * @throws \Safe\Exceptions\XmlException
      */
     public function open(): self
     {
@@ -210,15 +210,12 @@ class XmlTemplateReader
         #[Language('XML')]
         string $xml
     ): self {
-        Assertion::true($this->isOpened());
+        Assertion::true($this->isOpened(), 'Streamed reading has not been started yet, ::open() it first.');
 
         $exception = null;
 
         try {
-            $result = xml_parse($this->xmlParser, $xml);
-
-            if (!$result) {
-                // @codeCoverageIgnoreStart
+            if (!xml_parse($this->xmlParser, $xml)) {
                 throw new XmlParsingFailedException(
                     $errorCode = xml_get_error_code($this->xmlParser),
                     xml_error_string($errorCode) ?? 'Unknown parsing error',
@@ -226,7 +223,6 @@ class XmlTemplateReader
                     xml_get_current_column_number($this->xmlParser),
                     xml_get_current_byte_index($this->xmlParser),
                 );
-                // @codeCoverageIgnoreEnd
             }
         } catch (Throwable $exception) {
         } finally {
@@ -241,15 +237,18 @@ class XmlTemplateReader
     }
 
     /**
+     * @throws \Assert\AssertionFailedException When XML reading has not been started yet
      * @throws \Assert\AssertionFailedException When XML reading is not finished yet and there are still open nodes
      */
     public function close(): NodeInterface
     {
+        Assertion::true($this->isOpened(), 'Streamed reading has not been started yet, ::open() it first.');
+
         $this->deinitializeParser();
 
-        Assertion::count($this->pathForObject, 1);
+        Assertion::count($this->path, 0, 'Streamed reading has not been finished yet, there are still %2$s node(s) opened.');
 
-        $this->counter = [];
+        $this->stack = [];
 
         /** @var NodeInterface $wrapperObject */
         $wrapperObject = array_pop($this->pathForObject);
@@ -267,11 +266,9 @@ class XmlTemplateReader
         #[Language('XML')]
         string $xml
     ): NodeInterface {
-        $this->open();
-
-        $this->update($xml);
-
-        return $this->close();
+        return $this->open()
+            ->update($xml)
+            ->close();
     }
 
     /**
@@ -283,12 +280,7 @@ class XmlTemplateReader
         string $path,
         int $chunkSize = self::DEFAULT_CHUNK_SIZE
     ): ?NodeInterface {
-        $stream = fopen($path, 'rb');
-
-        Assertion::isResource($stream, 'Provided file could not be opened');
-
-        /** @var resource $stream */
-        return $this->readStream($stream, $chunkSize);
+        return $this->readStream(fopen($path, 'rb'), $chunkSize);
     }
 
     /**
@@ -301,18 +293,13 @@ class XmlTemplateReader
         $stream,
         int $chunkSize = self::DEFAULT_CHUNK_SIZE
     ): ?NodeInterface {
-        Assertion::greaterThan($chunkSize, 0, 'The read chunk size must be greater than 0');
+        Assertion::greaterThan($chunkSize, 0, 'Provided read chunk size %1$s must be greater than 0.');
 
         $this->open();
 
         try {
             while (!feof($stream)) {
-                $xml = fread($stream, $chunkSize);
-
-                Assertion::string($xml, 'Could not read XML data');
-
-                /** @var string $xml */
-                $this->update($xml);
+                $this->update(fread($stream, $chunkSize));
             }
         } finally {
             fclose($stream);
@@ -321,6 +308,9 @@ class XmlTemplateReader
         return $this->close();
     }
 
+    /**
+     * @throws \Safe\Exceptions\XmlException
+     */
     private function initializeParser(): void
     {
         $this->xmlParser = xml_parser_create('UTF-8');
@@ -328,10 +318,13 @@ class XmlTemplateReader
         xml_set_object($this->xmlParser, $this);
         xml_set_element_handler(
             $this->xmlParser,
-            [$this, 'onTagOpenRead'],
-            [$this, 'onTagCloseRead'],
+            fn (...$arguments) => $this->onTagOpenRead(...$arguments),
+            fn (...$arguments) => $this->onTagCloseRead(...$arguments),
         );
-        xml_set_character_data_handler($this->xmlParser, [$this, 'onCDataRead']);
+        xml_set_character_data_handler(
+            $this->xmlParser,
+            fn (...$arguments) => $this->onCDataRead(...$arguments),
+        );
         xml_parser_set_option($this->xmlParser, XML_OPTION_CASE_FOLDING, 0);
         xml_parser_set_option($this->xmlParser, XML_OPTION_SKIP_WHITE, 1);
     }
@@ -352,15 +345,9 @@ class XmlTemplateReader
      */
     private function onTagOpenRead($xmlParser, string $nodeName, array $attributes): void
     {
-        if ($this->inCData) {
-            $this->dispatchCDataReadEvent();
-
-            $this->inCData = false;
-            $this->cData = '';
-        }
-
         $this->path[] = $nodeName;
 
+        /** @var NodeInterface $parentNodeValueObject */
         $parentNodeValueObject = end($this->pathForObject);
 
         $this->eventDispatcher->dispatch(
@@ -381,16 +368,13 @@ class XmlTemplateReader
      */
     private function onCDataRead($xmlParser, string $contents): void
     {
-        $this->inCData = true;
-        $this->cData .= $contents;
-    }
+        /** @var NodeInterface $currentNodeValueObject */
+        $currentNodeValueObject = end($this->pathForObject);
 
-    private function dispatchCDataReadEvent(): void
-    {
         $this->eventDispatcher->dispatch(
             new CDataRead(
-                end($this->pathForObject),
-                $this->cData,
+                $currentNodeValueObject,
+                $contents,
             ),
             sprintf('cdata@%s', implode('/', $this->path)),
         );
@@ -401,18 +385,14 @@ class XmlTemplateReader
      */
     private function onTagCloseRead($xmlParser, string $nodeName): void
     {
-        if ($this->inCData) {
-            $this->dispatchCDataReadEvent();
-
-            $this->inCData = false;
-            $this->cData = '';
-        }
-
         array_pop($this->pathForHash);
+
+        /** @var NodeInterface $currentNodeValueObject */
+        $currentNodeValueObject = end($this->pathForObject);
 
         $this->eventDispatcher->dispatch(
             new TagClosed(
-                end($this->pathForObject),
+                $currentNodeValueObject,
                 $nodeName,
             ),
             sprintf('close@%s', implode('/', $this->path)),
@@ -428,12 +408,13 @@ class XmlTemplateReader
      * @throws \Donatorsky\XmlTemplate\Reader\Exceptions\RuleValidationFailedException
      * @throws \Donatorsky\XmlTemplate\Reader\Exceptions\UnexpectedMultipleNodeReadException
      * @throws \Donatorsky\XmlTemplate\Reader\Exceptions\UnknownRuleException
+     * @throws \Safe\Exceptions\PcreException
      */
     private function addListenersFromTemplate(SimpleXMLElement $simpleXMLElement, array $path = []): void
     {
         $children = $simpleXMLElement->children();
 
-        if (0 === $children->count()) {
+        if ($children->count() < 1) {
             return;
         }
 
@@ -448,14 +429,13 @@ class XmlTemplateReader
 
             // Read parsing configuration
             $configuration = [
-                'required' => filter_var(
-                    (string) ($configurationAttributes['required'] ?? self::CONFIGURATION_REQUIRED_TRUE),
-                    FILTER_VALIDATE_BOOLEAN,
-                    FILTER_NULL_ON_FAILURE,
-                ),
+                //'required' => filter_var(
+                //    (string) ($configurationAttributes['required'] ?? self::CONFIGURATION_REQUIRED_TRUE),
+                //    FILTER_VALIDATE_BOOLEAN,
+                //    FILTER_NULL_ON_FAILURE,
+                //),
 
                 'attributesRules'   => [],
-                'contents'          => '',
                 'type'              => (string) ($configurationAttributes['type'] ?? self::CONFIGURATION_TYPE_SINGLE),
                 'collectAttributes' => (string) ($configurationAttributes['collectAttributes'] ?? self::CONFIGURATION_COLLECT_ATTRIBUTES_VALIDATED),
                 'castTo'            => (string) ($configurationAttributes['castTo'] ?? Node::class),
@@ -469,12 +449,12 @@ class XmlTemplateReader
                     self::CONFIGURATION_CONTENTS_RAW;
             }
 
-            Assertion::notNull($configuration['required'], sprintf(
-                'The "%s" node\'s %s:required attribute value "%s" is invalid, true or false was expected',
-                $currentPathString,
-                $this->namespace,
-                $configurationAttributes['required'],
-            ));
+            //Assertion::notNull($configuration['required'], sprintf(
+            //    'The "%s" node\'s %s:required attribute value "%s" is invalid, true or false was expected',
+            //    $currentPathString,
+            //    $this->namespace,
+            //    $configurationAttributes['required'],
+            //));
 
             Assertion::choice($configuration['contents'], [
                 self::CONFIGURATION_CONTENTS_NONE,
@@ -504,22 +484,25 @@ class XmlTemplateReader
                 $this->namespace,
             ));
 
-            Assertion::true(class_exists($configuration['castTo']), sprintf(
+            Assertion::classExists($configuration['castTo'], sprintf(
                 'The "%s" node\'s %s:castTo attribute value "%s" refers to non-existent class FQN',
                 $currentPathString,
                 $this->namespace,
                 $configurationAttributes['castTo'],
+            ));
+            Assertion::subclassOf($configuration['castTo'], NodeInterface::class, sprintf(
+                'The "%s" node\'s %s:castTo attribute value "%s" refers to a class that does not implement "%s" interface',
+                $currentPathString,
+                $this->namespace,
+                $configurationAttributes['castTo'],
+                NodeInterface::class,
             ));
 
             // Attributes rules
             foreach ($child->attributes() as $name => $rulesDefinition) {
                 $rules = [];
 
-                if (false === preg_match_all('/(?P<rule>\w+)(?:\s*:\s*(?P<parameters>[^|]+)\s*)?/m', (string) $rulesDefinition, $matches, PREG_SET_ORDER)) {
-                    // @codeCoverageIgnoreStart
-                    throw new RuntimeException('Unexpected PRCE2 error');
-                    // @codeCoverageIgnoreEnd
-                }
+                preg_match_all('/(?P<rule>\w+)(?:\s*:\s*(?P<parameters>[^|]+)\s*)?/m', (string) $rulesDefinition, $matches, PREG_SET_ORDER);
 
                 foreach ($matches as $match) {
                     $ruleClass = $this->rulesClassmap[strtolower($match['rule'])] ?? null;
@@ -545,9 +528,9 @@ class XmlTemplateReader
                     $parentNodeHash = $event->getParentNodeHash();
                     $currentNodeName = $event->getNodeName();
 
-                    $this->counter[$parentNodeHash][$currentNodeName] ??= 0;
+                    $this->stack[$parentNodeHash][$currentNodeName]['counter'] ??= 0;
 
-                    if (self::CONFIGURATION_TYPE_SINGLE === $configuration['type'] && ++$this->counter[$parentNodeHash][$currentNodeName] > 1) {
+                    if (self::CONFIGURATION_TYPE_SINGLE === $configuration['type'] && ++$this->stack[$parentNodeHash][$currentNodeName]['counter'] > 1) {
                         throw new UnexpectedMultipleNodeReadException($currentPathString);
                     }
 
@@ -624,8 +607,10 @@ class XmlTemplateReader
                         $contents = trim($contents);
                     }
 
-                    $event->getCurrentNodeValueObject()
-                        ->setContents($contents);
+                    if (null !== $contents) {
+                        $event->getCurrentNodeValueObject()
+                            ->appendContents($contents);
+                    }
                 }
             );
 

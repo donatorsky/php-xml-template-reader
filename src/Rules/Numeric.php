@@ -13,12 +13,12 @@ class Numeric implements RuleInterface
     }
 
     /**
-     * @param mixed $value
+     * @param numeric-string|float|int $value
      *
      * @return float|int
      */
     public function process($value)
     {
-        return $value + 0;
+        return +$value;
     }
 }

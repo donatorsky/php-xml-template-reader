@@ -5,8 +5,11 @@ namespace Donatorsky\XmlTemplate\Reader\Rules;
 
 class FloatNumber extends Numeric
 {
+    /**
+     * @param numeric-string|float|int $value
+     */
     public function process($value): float
     {
-        return (float) parent::process($value);
+        return parent::process($value);
     }
 }

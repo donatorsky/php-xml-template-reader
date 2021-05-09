@@ -95,6 +95,17 @@ class Node implements NodeInterface
         return $this;
     }
 
+    public function appendContents(string $contents): self
+    {
+        if (null === $this->contents) {
+            $this->contents = $contents;
+        } else {
+            $this->contents .= $contents;
+        }
+
+        return $this;
+    }
+
     public function hasContents(): bool
     {
         return null !== $this->contents;

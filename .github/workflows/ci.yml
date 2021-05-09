@@ -73,7 +73,10 @@ jobs:
         run: composer lint:stan:analyse
 
       - name: Run Unit tests
-        run: composer lint:test:unit
+        run: composer tests:unit
+
+      - name: Run Mutation tests
+        run: composer tests:mutation:ci
 
   coveralls:
 

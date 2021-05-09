@@ -11,3 +11,6 @@
 
 # PHP Unit
 /.phpunit.result.cache
+
+# Infection
+/infection.json

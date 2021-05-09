@@ -12,8 +12,11 @@ class Trim implements RuleInterface
         return \is_string($value);
     }
 
+    /**
+     * @param string $value
+     */
     public function process($value): string
     {
-        return trim((string) $value);
+        return trim($value);
     }
 }

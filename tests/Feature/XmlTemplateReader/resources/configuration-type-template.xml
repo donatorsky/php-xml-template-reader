@@ -1,8 +1,0 @@
-<?xml version="1.0" encoding="UTF-8" ?>
-<template xmlns:tpl="http://www.w3.org/2001/XMLSchema-instance"
-          tpl:noNamespaceSchemaLocation="../../../../src/xml-template-reader.xsd">
-    <root>
-        <singleNode tpl:type="single" />
-        <multipleNode tpl:type="collection" />
-    </root>
-</template>
