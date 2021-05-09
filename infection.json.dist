@@ -27,7 +27,12 @@
             "xml_set_element_handler\\(\\$this->xmlParser,.*",
             "xml_set_object\\(\\$this->xmlParser, \\$this\\).*"
         ],
-        "@default": true
+        "@default": true,
+        "ArrayItemRemoval": {
+            "ignoreSourceCodeByRegex": [
+                "'attributesRules'\\s*=>\\s*\\[\\],"
+            ]
+        }
     },
     "testFramework": "phpunit",
     "testFrameworkOptions": "--do-not-cache-result",

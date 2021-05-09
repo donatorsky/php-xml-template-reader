@@ -3,7 +3,9 @@ declare(strict_types=1);
 
 namespace Donatorsky\XmlTemplate\Reader\Tests\XmlTemplateReader;
 
+use Assert\InvalidArgumentException;
 use Donatorsky\XmlTemplate\Reader\Exceptions\UnknownRuleException;
+use Donatorsky\XmlTemplate\Reader\Models\Map;
 use Donatorsky\XmlTemplate\Reader\Rules\Contracts\RuleInterface;
 use Donatorsky\XmlTemplate\Reader\XmlTemplateReader;
 use stdClass;
@@ -14,11 +16,6 @@ use stdClass;
  */
 class CustomFilterTest extends AbstractXmlTemplateReaderTest
 {
-    private const XML_DATA = <<<'XML'
-<root custom="some value 1" customAliased="some value 2">
-</root>
-XML;
-
     private XmlTemplateReader $xmlTemplateReader;
 
     protected function setUp(): void
@@ -40,15 +37,14 @@ XML;
     public function testCustomFilterPass(): void
     {
         $node = $this->xmlTemplateReader->registerRuleFilter('myRule', MyRule::class, ['myRuleAlias'])
-            ->preloadTemplate()
-            ->read(self::XML_DATA);
+            ->read(self::getDataXml('filters-custom'));
 
         $attributesMap = $node->getAttributes();
 
-        self::assertTrue($attributesMap->has('custom'));
-        self::assertSame('foo SOME VALUE 1 123', $attributesMap->get('custom'));
-        self::assertTrue($attributesMap->has('customAliased'));
-        self::assertSame('bar SOME VALUE 2 987', $attributesMap->get('customAliased'));
+        self::assertMapContains($attributesMap, 'custom', 'foo SOME VALUE 1A 123');
+        self::assertMapContains($attributesMap, 'customSpaced', 'foo SOME VALUE 1B 123');
+        self::assertMapContains($attributesMap, 'customAliased', 'bar SOME VALUE 2A 987');
+        self::assertMapContains($attributesMap, 'customAliasedSpaced', 'bar SOME VALUE 2B 987');
     }
 
     /**
@@ -56,7 +52,7 @@ XML;
      */
     public function testFailToRegisterCustomRuleWithInvalidName(): void
     {
-        $this->expectException(\Assert\InvalidArgumentException::class);
+        $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessage('The "my rule" name of the rule is invalid.');
 
         $this->xmlTemplateReader->registerRuleFilter('my rule', MyRule::class);
@@ -67,7 +63,7 @@ XML;
      */
     public function testFailToRegisterCustomRuleWithInvalidAlias(): void
     {
-        $this->expectException(\Assert\InvalidArgumentException::class);
+        $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessage('The "my rule alias" alias name of the rule is invalid.');
 
         $this->xmlTemplateReader->registerRuleFilter('myRule', MyRule::class, ['my rule alias']);
@@ -78,10 +74,16 @@ XML;
      */
     public function testFailToRegisterCustomRuleWithRuleClassNotImplementingRuleInterface(): void
     {
-        $this->expectException(\Assert\InvalidArgumentException::class);
+        $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessage(sprintf('Class "stdClass" was expected to be subclass of "%s".', RuleInterface::class));
 
         $this->xmlTemplateReader->registerRuleFilter('myRule', stdClass::class);
+    }
+
+    private static function assertMapContains(Map $attributesMap, string $name, string $value): void
+    {
+        self::assertTrue($attributesMap->has($name));
+        self::assertSame($value, $attributesMap->get($name));
     }
 }
 
@@ -99,8 +101,8 @@ class MyRule implements RuleInterface
 
     public function passes($value): bool
     {
-        return ('some value 1' === $value && 'foo' === $this->arg1 && '123' === $this->arg2) ||
-            ('some value 2' === $value && 'bar' === $this->arg1 && '987' === $this->arg2);
+        return (0 === strpos($value, 'some value 1') && 'foo' === $this->arg1 && '123' === $this->arg2) ||
+            (0 === strpos($value, 'some value 2') && 'bar' === $this->arg1 && '987' === $this->arg2);
     }
 
     public function process($value)
