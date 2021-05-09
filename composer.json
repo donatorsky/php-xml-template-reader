@@ -1,5 +1,5 @@
 {
-    "name": "xml/template",
+    "name": "donatorsky/php-xml-template-reader",
     "description": "The PHP XML Reader where you show how to read the XML, and it does the rest for you.",
     "homepage": "https://github.com/donatorsky/php-xml-template-reader",
     "authors": [
